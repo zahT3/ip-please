@@ -20,3 +20,6 @@ OUTPUT_STYLE="${OUTPUT_STYLE:-badge}"
 
 # 熔断后是否尝试自动拉起代理客户端（留空 = 不拉起）。例：RELAUNCH_APP="FlClash"
 RELAUNCH_APP="${RELAUNCH_APP:-}"
+
+# 地区不一致时是否一律判失败（1=严格；0=仅中文/日文/韩文语言判失败）
+FINGERPRINT_STRICT="${FINGERPRINT_STRICT:-0}"

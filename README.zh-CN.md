@@ -77,7 +77,7 @@ sudo "$(brew --prefix ip-please)/libexec/install.sh"
 | `ipp ip` | 出口身份核验：ASN、reverse DNS、欺诈评分、住宅/机房属性、geo |
 | `ipp dns` | 解析路径断言：验证 `claude.ai` 等域名解析结果落于 fake-ip 网段 |
 | `ipp egress [--fix]` | 出口收敛：审计目标 AI 域名是否命中单一策略组；`--fix` 自动归并旁路域名 |
-| `ipp fingerprint` | 环境一致性：校验本机时区、语言、地区设置与出口 geo 是否对齐 |
+| `ipp fingerprint` | 环境一致性：校验时区、语言、地区（会解码 AppleLocale 的 `@rg=` 区域覆盖）与出口 geo 是否对齐 |
 | `ipp risk` | 风控探测：检测目标站点是否返回 Cloudflare challenge |
 | `ipp guard <sub>` | 出站熔断器控制：`status` / `install` / `pause` / `resume` / `remove` / `test` / `test-soft` |
 | `ipp panic` | 应急解除熔断（网络被阻断时使用） |
@@ -117,6 +117,8 @@ sudo "$(brew --prefix ip-please)/libexec/install.sh"
 出站熔断器只负责阻断，默认不拉起客户端；若需在阻断时尝试拉起代理，可配置 `RELAUNCH_APP="FlClash"`（每次阻断仅尝试一次）。
 
 **运维规程：`ipp guard pause` → 执行变更 → 状态验证 → `ipp guard resume`。** 该时序受自动化测试约束。
+
+地区不一致默认只警告（开发机常见）；要一律判失败，在 `config.sh` 设 `FINGERPRINT_STRICT=1`。
 
 ## 为什么是定时巡检而不是常驻进程
 

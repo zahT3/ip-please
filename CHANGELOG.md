@@ -31,6 +31,13 @@
 ### Added
 - `tests/fingerprint_test.sh`：环境一致性判定的退出码与提示
 
+## [0.5.4] - 2026-11-25
+
+### Added
+- 环境一致性解析 `AppleLocale` 的 `@rg=` 区域覆盖（如 `en_US@rg=sgzzzz` → 语言 en · 地区 US · 区域覆盖 SG），并新增「地区解码」输出行
+- `FINGERPRINT_STRICT=1`：地区不一致一律判失败；默认只在 zh/ja/ko 语言下判失败
+- `tests/fingerprint_test.sh` 扩展到 11 项断言
+
 ## [Unreleased]
 
 ### Added

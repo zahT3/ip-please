@@ -77,7 +77,7 @@ sudo "$(brew --prefix ip-please)/libexec/install.sh"
 | `ipp ip` | Exit identity: ASN, reverse DNS, fraud score, residential/datacenter, geo |
 | `ipp dns` | Resolution path assertion: `claude.ai` and friends must land in the fake-ip range |
 | `ipp egress [--fix]` | Egress convergence: do all AI domains hit one policy group; `--fix` folds stray domains in |
-| `ipp fingerprint` | Environment consistency: timezone / language / region vs exit geo |
+| `ipp fingerprint` | Environment consistency: timezone, language and region (decodes AppleLocale `@rg=` overrides) vs exit geo |
 | `ipp risk` | Risk surface: detect a Cloudflare challenge |
 | `ipp guard <sub>` | Circuit breaker: `status` / `install` / `pause` / `resume` / `remove` / `test` / `test-soft` |
 | `ipp panic` | Emergency release of the breaker |
@@ -117,6 +117,8 @@ After loading rules the breaker verifies the rule count via `pfctl -a ip-please-
 The breaker only blocks; it does not start your proxy client. Set `RELAUNCH_APP="FlClash"` to have it try once per block episode.
 
 **Operating rule: `ipp guard pause` → change → verify → `ipp guard resume`.** Enforced by tests.
+
+Region mismatches are a warning by default (common on dev machines); set `FINGERPRINT_STRICT=1` in `config.sh` to make any region mismatch fail.
 
 ## Why interval, not a resident daemon
 
