@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/zahT3/ip-please/actions/workflows/ci.yml/badge.svg)](https://github.com/zahT3/ip-please/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/zahT3/ip-please)](https://github.com/zahT3/ip-please/releases)
 
 **macOS 下的 AI 账号出口身份审计与防泄漏熔断 CLI**
 
@@ -60,10 +61,12 @@ cp config.example.sh config.sh   # PROXY_PORT / EXPECT_COUNTRY / PROFILE_DIR
 
 安装完成后可执行文件软链至 `~/.local/bin/ip-please`。
 
-Homebrew（tap 仓库发布后可用）：
+Homebrew：
 
 ```bash
 brew install zahT3/tap/ip-please
+# 系统侧组件（写 /etc、加载 launchd，需要 sudo）
+sudo "$(brew --prefix ip-please)/libexec/install.sh"
 ```
 
 ## 命令

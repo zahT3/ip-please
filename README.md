@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/zahT3/ip-please/actions/workflows/ci.yml/badge.svg)](https://github.com/zahT3/ip-please/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/zahT3/ip-please)](https://github.com/zahT3/ip-please/releases)
 
 **Egress-identity auditor and fail-closed circuit breaker for AI accounts on macOS.**
 
@@ -60,10 +61,12 @@ cp config.example.sh config.sh   # PROXY_PORT / EXPECT_COUNTRY / PROFILE_DIR
 
 After install the `ip-please` command is symlinked into `~/.local/bin/ip-please`.
 
-Homebrew (after the tap repo exists):
+Homebrew:
 
 ```bash
 brew install zahT3/tap/ip-please
+# system side (writes /etc, loads launchd, needs sudo)
+sudo "$(brew --prefix ip-please)/libexec/install.sh"
 ```
 
 ## Commands

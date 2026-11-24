@@ -2,22 +2,24 @@
 #   brew install zahT3/tap/ip-please
 #
 # sha256 需要用发布产物的校验值替换：
-#   curl -sL https://github.com/zahT3/ip-please/archive/refs/tags/v0.5.0.tar.gz | shasum -a 256
+#   curl -sL https://github.com/zahT3/ip-please/archive/refs/tags/v0.5.1.tar.gz | shasum -a 256
 class IpPlease < Formula
   desc "Egress-identity auditor and fail-closed circuit breaker for AI accounts (macOS)"
   homepage "https://github.com/zahT3/ip-please"
-  url "https://github.com/zahT3/ip-please/archive/refs/tags/v0.5.0.tar.gz"
-  sha256 "REPLACE_WITH_RELEASE_TARBALL_SHA256"
+  url "https://github.com/zahT3/ip-please/archive/refs/tags/v0.5.1.tar.gz"
+  sha256 "ee23692c01c8ac65da85ee5c84957856ec8a0510436cfd7ba9c157c63fb8eb8a"
   license "MIT"
 
   depends_on :macos
 
   def install
     libexec.install Dir["*"]
-    (bin/"ip-please").write <<~EOS
-      #!/bin/bash
-      exec "#{libexec}/bin/ip-please" "$@"
-    EOS
+    %w[ipp ipplz ip-please].each do |cmd|
+      (bin/cmd).write <<~EOS
+        #!/bin/bash
+        exec "#{libexec}/bin/ip-please" "$@"
+      EOS
+    end
   end
 
   def caveats
@@ -33,6 +35,6 @@ class IpPlease < Formula
   end
 
   test do
-    assert_match "ip-please #{version}", shell_output("#{bin}/ip-please version")
+    assert_match version.to_s, shell_output("#{bin}/ipp version")
   end
 end
