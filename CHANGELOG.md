@@ -64,6 +64,12 @@
 ### Fixed
 - `egress` 找不到 profile 时提示被命令替换吞掉、用户看不到错误
 
+## [0.5.8] - 2026-11-25
+
+### Added
+- 出口探针与 AI 路径对齐：`ipp egress --fix` 会把 `ipinfo.io` / `api.scamalytics.com` 一起钉进 AI 策略组
+- `ipp egress` 与 `ipp ip` 会提示「探针路径与 Claude 出口不一致」，避免把默认路由的结果当成 AI 出口
+
 ## [Unreleased]
 
 ### Added

@@ -107,7 +107,7 @@ ipp guard resume    # 改完再恢复防护
 | 命令 | 什么时候用 |
 |---|---|
 | `ipp egress` | 订阅更新后确认所有 AI 域名还走同一个策略组；红了就跑 `ipp egress --fix` |
-| `ipp ip` | 只看出画像：住宅还是机房、欺诈分、国家 |
+| `ipp ip` | 只看出画像：住宅还是机房、欺诈分、国家（前提是探针域名已钉进 AI 组，否则测的是默认路由） |
 | `ipp residue` | 换账号前扫描本地残留 |
 | `ipp panic` | 断网急救（见第 5 节第一条） |
 | `ipp doctor --redact` | 体检结果脱敏，方便截图发群里 |
@@ -233,7 +233,18 @@ rm -f ~/.ip-please-pause
 
 Claude 网页版或桌面客户端 → 设置（Settings）→ 隐私（Privacy）→ 关掉 **Help improve Claude**。关掉后新对话不会再用于训练。这是账号设置，工具无法代劳。
 
-### Q17：报错但我不确定该发什么给人看
+### Q17：面板显示"机房"，`ipp ip` 却显示"住宅"，信谁？
+
+两个可能，按顺序查：
+
+1. **`ipp ip` 测的路径不是 Claude 的路径**。它访问的是 `ipinfo.io`，如果订阅里没有把 `ipinfo.io` 钉进 AI 策略组，这条请求会命中最后的 `MATCH` 规则（通常是直连或主节点），测到的自然不是 Claude 的出口。
+   - 新版本会在 `ipp egress` 里直接提示：`探针路径 ipinfo.io 走 🐟 漏网之鱼`
+   - 解决：`ipp egress --fix` 会把 `ipinfo.io` / `api.scamalytics.com` 一起钉进 AI 组，然后**重启代理客户端**再跑 `ipp ip`
+2. **节点名字骗人**。机场把机房 IP 叫「家宽 05」很常见。改完后如果 `ipp ip` 显示机房 ASN（如 Akari Networks）且没有反查，那就是机房。
+
+判断依据永远是三件套：ASN 归属、反向域名（`dynamic`/`ppp`/`broadband` 才是家宽）、欺诈分。
+
+### Q18：报错但我不确定该发什么给人看
 
 跑：
 

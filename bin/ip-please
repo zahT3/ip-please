@@ -2,7 +2,7 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.5.7"
+VERSION="0.5.8"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -139,6 +139,13 @@ cmd_ip() {
     *) wrn "网络类型" "反向域名未知" ;;
   esac
   [ "${CC:-}" = "$EXPECT_COUNTRY" ] && ok "出口 geo" "$CC" || { bad "出口 geo" "${CC:-未知}（预期 ${EXPECT_COUNTRY}）"; fail=$((fail + 1)); }
+  local _p _g
+  if _p=$(resolve_profile 2>/dev/null); then
+    _g=$(IP_PLEASE_REDACT="${REDACT:-0}" python3 "$HELPER" rules "$_p" ipinfo.io 2>/dev/null | awk -F'\t' '$1=="ipinfo.io"{print $2}')
+    if [ -n "${_g:-}" ] && [ "$_g" != "$AI_GROUP" ]; then
+      info "探针路径" "ipinfo.io 走 ${_g}，不是 ${AI_GROUP}（ipp ip 测的是默认路由）"
+    fi
+  fi
   if [ -n "${EXPECT_IP_PREFIX:-}" ]; then
     case "$IP" in
       "$EXPECT_IP_PREFIX"*) ok "IP 前缀" "$EXPECT_IP_PREFIX" ;;
@@ -302,7 +309,7 @@ cmd_egress() {
   if [ "$fix" -eq 1 ]; then
     say "把旁路域名钉进 $AI_GROUP"
     cp "$profile" "$profile.bak-ip-please-$(date +%H%M%S)" 2>/dev/null || { bad "备份" "无法写入 $profile"; return 1; }
-    if ! out=$(python3 "$HELPER" fix "$profile" "$AI_GROUP" $PIN_DOMAINS 2>&1); then
+    if ! out=$(python3 "$HELPER" fix "$profile" "$AI_GROUP" $PIN_DOMAINS $PROBE_DOMAINS 2>&1); then
       bad "写入" "$out"
       printf '  修复: 在 config.sh 里把 AI_GROUP 改成你订阅里的策略组名\n'
       return 1
@@ -321,6 +328,16 @@ cmd_egress() {
   if [ "${groups:-0}" -le 1 ]; then ok "结论" "AI 域名已收敛至单一策略组"; else
     bad "结论" "命中 $groups 个策略组，egress 未收敛"; printf '  修复: ip-please egress --fix\n'
   fi
+  local _d _pg _probe_bad=0 probe_out
+  probe_out=$(IP_PLEASE_REDACT="${REDACT:-0}" python3 "$HELPER" rules "$profile" $PROBE_DOMAINS 2>/dev/null)
+  for _d in $PROBE_DOMAINS; do
+    _pg=$(printf '%s\n' "$probe_out" | awk -F'\t' -v d="$_d" '$1==d{print $2}')
+    if [ -n "${_pg:-}" ] && [ "$_pg" != "$AI_GROUP" ]; then
+      wrn "探针路径" "$_d 走 ${_pg}（ipp ip/risk 测的不是 Claude 出口）"
+      _probe_bad=1
+    fi
+  done
+  [ "$_probe_bad" = 1 ] && printf '  对齐: ip-please egress --fix（会把探针域名一起钉进 %s）\n' "$AI_GROUP"
   return $rc
 }
 

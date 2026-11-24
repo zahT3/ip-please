@@ -9,6 +9,8 @@ AI_GROUP="${AI_GROUP:-AI}"   # 填你客户端里 AI 相关策略组的名字
 
 AI_DOMAINS="${AI_DOMAINS:-claude.ai claude.com anthropic.com api.anthropic.com console.anthropic.com platform.claude.com code.claude.com releases.claude.com downloads.claude.ai preview.claude.ai claudeusercontent.com claudemcpcontent.com statsig.anthropic.com statsig.com sentry.io ingest.sentry.io claude.googleapis.com}"
 PIN_DOMAINS="${PIN_DOMAINS:-statsig.com claude.googleapis.com}"
+# 出口探针域名：把它们也钉进 AI 组，ipp ip/risk 才测到和 Claude 相同的路径
+PROBE_DOMAINS="${PROBE_DOMAINS:-ipinfo.io api.scamalytics.com}"
 
 # 订阅 profile 目录（留空 = 自动探测 FlClash / Clash Verge / ClashX / mihomo 等常见位置）
 PROFILE_DIR="${PROFILE_DIR:-}"
