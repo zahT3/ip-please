@@ -2,7 +2,7 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.5.2"
+VERSION="0.5.3"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -62,6 +62,7 @@ st() {
   case "$lvl" in
     pass) tag=PASS; sym='✅'; color=$C_OK ;;
     warn) tag=WARN; sym='⚠️'; color=$C_WARN ;;
+    info) tag=INFO; sym='ℹ️'; color=$C_DIM ;;
     *)    tag=FAIL; sym='❌'; color=$C_BAD ;;
   esac
   case "$STYLE" in
@@ -72,9 +73,10 @@ st() {
   esac
 }
 
-ok()  { st pass "$1" "$2"; }
+ok()   { st pass "$1" "$2"; }
 bad() { st fail "$1" "$2"; }
-wrn() { st warn "$1" "$2"; }
+wrn()  { st warn "$1" "$2"; }
+info() { st info "$1" "$2"; }
 kv()  {
   case "$STYLE" in
     badge) printf '      %s %s\n' "$(pad "$1" 20)" "$2" ;;
@@ -158,7 +160,7 @@ cmd_dns() {
 }
 
 cmd_fingerprint() {
-  local tz loc langs
+  local tz loc langs exp_tz fail=0
   say "环境一致性（时区 / 语言 / geo）"
   if ! read_exit; then bad "出口" "拿不到出口国家，无法判断一致性"; return 1; fi
   tz=$(readlink /etc/localtime 2>/dev/null | sed 's#.*zoneinfo/##')
@@ -168,18 +170,41 @@ cmd_fingerprint() {
   kv "地区" "${loc:-未知}"
   kv "语言" "${langs:-未知}"
   kv "出口 geo" "$CC"
+
   case "$CC" in
-    TW) case "$tz" in *Taipei*) ok "时区对齐" "Asia/Taipei" ;; *) wrn "时区对齐" "${tz:-未知} 与 TW 不一致" ;; esac ;;
-    US) case "$tz" in *America*) ok "时区对齐" "$tz" ;; *) wrn "时区对齐" "$tz 与 US 不一致" ;; esac ;;
-    JP) case "$tz" in *Tokyo*) ok "时区对齐" "$tz" ;; *) wrn "时区对齐" "$tz 与 JP 不一致" ;; esac ;;
-    *) wrn "时区对齐" "出口 ${CC}，未建规则" ;;
+    TW) exp_tz="Asia/Taipei" ;;
+    HK) exp_tz="Asia/Hong_Kong" ;;
+    JP) exp_tz="Asia/Tokyo" ;;
+    SG) exp_tz="Asia/Singapore" ;;
+    US) exp_tz="America/New_York" ;;
+    GB) exp_tz="Europe/London" ;;
+    DE) exp_tz="Europe/Berlin" ;;
+    NL) exp_tz="Europe/Amsterdam" ;;
+    *)  exp_tz="" ;;
   esac
+  if [ -z "$exp_tz" ]; then
+    wrn "时区对齐" "出口 ${CC} 无对应规则，跳过判定"
+  elif [ "${tz:-}" = "$exp_tz" ]; then
+    ok "时区对齐" "$tz"
+  else
+    bad "时区对齐" "${tz:-未知} ≠ ${exp_tz}（出口 ${CC} 的典型时区）"; fail=$((fail + 1))
+  fi
+
   case "$loc" in
-    zh_*) case "$CC" in TW|HK|CN|SG) ok "地区对齐" "$loc" ;; *) wrn "地区对齐" "$loc（中文地区 vs 欧美出口）" ;; esac ;;
-    en_*) ok "地区对齐" "$loc" ;;
-    *) wrn "地区对齐" "${loc:-未知}" ;;
+    zh_*)
+      case "$CC" in
+        TW|HK|MO|CN|SG) ok "地区对齐" "$loc" ;;
+        *) bad "地区对齐" "$loc 与出口 ${CC} 不匹配（中文地区 × 非中文区出口）"; fail=$((fail + 1)) ;;
+      esac ;;
+    en_*)
+      case "$CC" in
+        TW|HK|MO|CN|SG) info "地区对齐" "${loc}（英文地区 × 中文区出口，通常是开发机默认值）" ;;
+        *) ok "地区对齐" "$loc" ;;
+      esac ;;
+    "") wrn "地区对齐" "读不到 AppleLocale" ;;
+    *)  wrn "地区对齐" "${loc}（未识别的地区格式）" ;;
   esac
-  return 0
+  return $fail
 }
 
 cmd_risk() {
@@ -190,7 +215,7 @@ cmd_risk() {
     hdr=$(curl -s -D - -o /dev/null --max-time 15 -A "$ua" "https://$host" 2>/dev/null)
     code=$(printf '%s' "$hdr" | head -1 | awk '{print $2}')
     if printf '%s' "$hdr" | grep -qi 'cf-mitigated: *challenge'; then
-      wrn "$host" "Cloudflare 挑战（未登录请求常见）"; chal=$((chal + 1))
+      info "$host" "Cloudflare 挑战（探针无登录态，属预期）"; chal=$((chal + 1))
     elif [ "$code" = "403" ] || [ "$code" = "429" ]; then
       wrn "$host" "HTTP $code（限流/拒绝）"; fail=$((fail + 1))
     elif [ -n "$code" ]; then
