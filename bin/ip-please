@@ -1,0 +1,452 @@
+#!/bin/bash
+# ip-please —— 出口身份审计与防泄漏熔断 CLI（macOS）
+set -uo pipefail
+
+VERSION="0.5.0"
+_SRC="${BASH_SOURCE[0]}"
+while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
+HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
+. "$HERE/config.example.sh"
+[ -f "$HERE/config.sh" ] && . "$HERE/config.sh"
+
+HELPER="$HERE/lib/ip_please.py"
+PLIST="/Library/LaunchDaemons/local.ip-please.guard.plist"
+PAUSE="$HOME/.ip-please-pause"
+ANCHOR="ip-please-guard"
+EXIT_CACHE="${TMPDIR:-/tmp}/ip-please-exit-$(id -u).cache"
+
+C_OK=$'\033[1;32m'; C_BAD=$'\033[1;31m'; C_WARN=$'\033[1;33m'; C_H=$'\033[1;36m'; C_DIM=$'\033[2m'; C_N=$'\033[0m'
+
+STYLE="${IP_PLEASE_STYLE:-${OUTPUT_STYLE:-badge}}"
+ARGS=()
+for a in "$@"; do
+  case "$a" in
+    --plain|--stack|--badge|--unicode) STYLE="${a#--}";;
+    --profile) PROFILE_NEXT=1;;
+    *) if [ "${PROFILE_NEXT:-0}" = 1 ]; then PROFILE_PATH="$a"; PROFILE_NEXT=0; else ARGS+=("$a"); fi;;
+  esac
+done
+[ ${#ARGS[@]} -gt 0 ] && set -- "${ARGS[@]}" || set --
+
+_vlen() {
+  local s=$1 n b
+  n=${#s}
+  case "$s" in
+    *[!\ -~]*) local LC_ALL=C; b=${#s} ;;
+    *) b=$n ;;
+  esac
+  printf '%d' $(( (b + n) / 2 ))
+}
+
+pad() { local s=$1 w=$2 n; n=$(( w - $(_vlen "$s") )); (( n < 1 )) && n=1; printf '%s%*s' "$s" "$n" ''; }
+
+say() {
+  case "$STYLE" in
+    plain) printf '\n[%s]\n' "$*" ;;
+    stack) printf '\n%s\n' "$*" ;;
+    *)     printf '\n%s▸ %s%s\n' "$C_H" "$*" "$C_N" ;;
+  esac
+}
+
+st() {
+  local lvl=$1 label=$2 val=$3 tag sym color
+  case "$lvl" in
+    pass) tag=PASS; sym='✅'; color=$C_OK ;;
+    warn) tag=WARN; sym='⚠️'; color=$C_WARN ;;
+    *)    tag=FAIL; sym='❌'; color=$C_BAD ;;
+  esac
+  case "$STYLE" in
+    plain) printf '  %s %s  [%s]\n' "$(pad "$label" 22)" "$val" "$tag" ;;
+    stack) printf '  [%s] %s: %s\n' "$tag" "$label" "$val" ;;
+    badge) printf '  %s  %s %s\n' "$sym" "$(pad "$label" 20)" "$val" ;;
+    *)     printf '  %s%s  %s  %s%s%s\n' "$(pad "$label" 22)" "$color" "$val" "$sym" "$C_OK" "$C_N" ;;
+  esac
+}
+
+ok()  { st pass "$1" "$2"; }
+bad() { st fail "$1" "$2"; }
+wrn() { st warn "$1" "$2"; }
+kv()  {
+  case "$STYLE" in
+    badge) printf '      %s %s\n' "$(pad "$1" 20)" "$2" ;;
+    stack) printf '  %s: %s\n' "$1" "$2" ;;
+    *)     printf '  %s %s\n' "$(pad "$1" 22)" "$2" ;;
+  esac
+}
+
+need_sudo() { sudo -n true 2>/dev/null || sudo -v || { printf '需要管理员权限\n' >&2; return 1; }; }
+
+# ---------- 出口信息（一次抓取，结果缓存给其它探测复用）----------
+UA_DEFAULT="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36"
+
+fetch_exit() {
+  local ip info fraud
+  ip=$(curl -s --max-time 10 https://api.ipify.org 2>/dev/null)
+  [ -z "$ip" ] && return 1
+  info=$(curl -s --max-time 12 "https://ipinfo.io/${ip}/json" 2>/dev/null)
+  [ -z "$info" ] && return 1
+  fraud=$(curl -s --max-time 10 -A "$UA_DEFAULT" "https://scamalytics.com/ip/${ip}" 2>/dev/null |
+    sed -n 's/.*Fraud Score: *\([0-9][0-9]*\).*/\1/p' | head -1)
+  printf '%s\t%s\n' "$(printf '%s' "$info" | python3 "$HELPER" ipjson 2>/dev/null)" "${fraud:--}" > "$EXIT_CACHE.tmp" || return 1
+  printf '%s\t%s\n' "$(cat "$EXIT_CACHE.tmp")" "$ip" > "$EXIT_CACHE"
+  rm -f "$EXIT_CACHE.tmp"
+  return 0
+}
+
+_cache_fresh() { [ -f "$EXIT_CACHE" ] && [ -n "$(find "$EXIT_CACHE" -mmin -10 2>/dev/null)" ]; }
+
+read_exit() {
+  if ! _cache_fresh; then fetch_exit || return 1; fi
+  IFS=$'\t' read -r CC ORG HOST FRAUD IP < "$EXIT_CACHE" || return 1
+  case "${IP:-}" in
+    [0-9]*.[0-9]*.[0-9]*.[0-9]*) return 0 ;;
+    *) rm -f "$EXIT_CACHE"; return 1 ;;
+  esac
+}
+
+cmd_ip() {
+  local fail=0 residential=unknown
+  say "出口身份"
+  if ! read_exit; then bad "出口" "拿不到出口信息"; return 1; fi
+  kv "IP" "$IP"
+  kv "ASN" "$ORG"
+  [ -n "${HOST:-}" ] && kv "reverse DNS" "$HOST"
+  case "${HOST:-}" in
+    *dynamic*|*dsl*|*ppp*|*broadband*|*hinet-ip*|*static*) residential=1 ;;
+    "") residential=unknown ;;
+    *) residential=0 ;;
+  esac
+  [ "${FRAUD:-}" = "-" ] || [ -z "${FRAUD:-}" ] && wrn "欺诈评分" "未取到（scamalytics 不可达）" || {
+    if [ "$FRAUD" -le 25 ]; then ok "欺诈评分" "$FRAUD / 100"; else wrn "欺诈评分" "$FRAUD / 100（偏高）"; fail=$((fail + 1)); fi
+  }
+  case "$residential" in
+    1) ok "网络类型" "住宅/家宽" ;;
+    0) wrn "网络类型" "非家宽（机房或企业线路）" ;;
+    *) wrn "网络类型" "反向域名未知" ;;
+  esac
+  [ "${CC:-}" = "$EXPECT_COUNTRY" ] && ok "出口 geo" "$CC" || { bad "出口 geo" "${CC:-未知}（预期 ${EXPECT_COUNTRY}）"; fail=$((fail + 1)); }
+  if [ -n "${EXPECT_IP_PREFIX:-}" ]; then
+    case "$IP" in
+      "$EXPECT_IP_PREFIX"*) ok "IP 前缀" "$EXPECT_IP_PREFIX" ;;
+      *) wrn "IP 前缀" "$IP 不在 $EXPECT_IP_PREFIX 段内" ;;
+    esac
+  fi
+  return $fail
+}
+
+cmd_dns() {
+  local fail=0 d ip
+  say "解析路径"
+  for d in claude.ai api.anthropic.com statsig.com; do
+    ip=$(dscacheutil -q host -a name "$d" 2>/dev/null | awk '/ip_address/{print $2; exit}')
+    case "$ip" in
+      "$FAKE_IP_PREFIX"*) ok "$d" "$ip (fake-ip)" ;;
+      "") bad "$d" "解析失败"; fail=1 ;;
+      *) bad "$d" "$ip（未走 fake-ip，可能泄漏）"; fail=1 ;;
+    esac
+  done
+  return $fail
+}
+
+cmd_fingerprint() {
+  local tz loc langs
+  say "环境一致性（时区 / 语言 / geo）"
+  if ! read_exit; then bad "出口" "拿不到出口国家，无法判断一致性"; return 1; fi
+  tz=$(readlink /etc/localtime 2>/dev/null | sed 's#.*zoneinfo/##')
+  loc=$(defaults read -g AppleLocale 2>/dev/null)
+  langs=$(defaults read -g AppleLanguages 2>/dev/null | tr -d '\n' | tr -s ' ')
+  kv "时区" "${tz:-未知}"
+  kv "地区" "${loc:-未知}"
+  kv "语言" "${langs:-未知}"
+  kv "出口 geo" "$CC"
+  case "$CC" in
+    TW) case "$tz" in *Taipei*) ok "时区对齐" "Asia/Taipei" ;; *) wrn "时区对齐" "${tz:-未知} 与 TW 不一致" ;; esac ;;
+    US) case "$tz" in *America*) ok "时区对齐" "$tz" ;; *) wrn "时区对齐" "$tz 与 US 不一致" ;; esac ;;
+    JP) case "$tz" in *Tokyo*) ok "时区对齐" "$tz" ;; *) wrn "时区对齐" "$tz 与 JP 不一致" ;; esac ;;
+    *) wrn "时区对齐" "出口 ${CC}，未建规则" ;;
+  esac
+  case "$loc" in
+    zh_*) case "$CC" in TW|HK|CN|SG) ok "地区对齐" "$loc" ;; *) wrn "地区对齐" "$loc（中文地区 vs 欧美出口）" ;; esac ;;
+    en_*) ok "地区对齐" "$loc" ;;
+    *) wrn "地区对齐" "${loc:-未知}" ;;
+  esac
+  return 0
+}
+
+cmd_risk() {
+  local ua host hdr code fail=0 chal=0
+  ua="$UA_DEFAULT"
+  say "风控探测"
+  for host in claude.ai chatgpt.com; do
+    hdr=$(curl -s -D - -o /dev/null --max-time 15 -A "$ua" "https://$host" 2>/dev/null)
+    code=$(printf '%s' "$hdr" | head -1 | awk '{print $2}')
+    if printf '%s' "$hdr" | grep -qi 'cf-mitigated: *challenge'; then
+      wrn "$host" "Cloudflare 挑战（未登录请求常见）"; chal=$((chal + 1))
+    elif [ "$code" = "403" ] || [ "$code" = "429" ]; then
+      wrn "$host" "HTTP $code（限流/拒绝）"; fail=$((fail + 1))
+    elif [ -n "$code" ]; then
+      ok "$host" "HTTP $code"
+    else
+      bad "$host" "无响应"; fail=$((fail + 1))
+    fi
+  done
+  [ "$chal" -ge 2 ] && { bad "综合" "两站均被挑战，IP 信誉可疑"; fail=$((fail + 1)); }
+  return $fail
+}
+
+# ---------- 出口收敛 ----------
+resolve_profile() {
+  local p="${PROFILE_PATH:-}"
+  p="${p/#\~/$HOME}"
+  if [ -z "$p" ]; then p=$(ls -t "$PROFILE_DIR"/*.yaml 2>/dev/null | head -1); fi
+  [ -n "$p" ] && [ -f "$p" ] || { bad "订阅配置" "找不到 profile（用 --profile 指定）"; return 1; }
+  printf '%s\n' "$p"
+}
+
+_show_groups() {
+  local out=$1
+  printf '%s\n' "$out" | awk -F'\t' -v style="$STYLE" '
+    $1=="GROUPS"{printf "  策略组数量: %s\n", $2; next}
+    {g=$2; if (style!="unicode") g=$2; printf "  %-28s %s\n", $1, g}'
+}
+
+cmd_egress() {
+  local fix=0 profile out rc groups
+  [ "${1:-}" = "--fix" ] && fix=1
+  profile=$(resolve_profile) || return 1
+
+  if [ "$fix" -eq 1 ]; then
+    say "把旁路域名钉进 $AI_GROUP"
+    cp "$profile" "$profile.bak-ip-please-$(date +%H%M%S)" 2>/dev/null || { bad "备份" "无法写入 $profile"; return 1; }
+    if ! out=$(python3 "$HELPER" fix "$profile" "$AI_GROUP" $PIN_DOMAINS 2>&1); then
+      bad "写入" "$out"; return 1
+    fi
+    ok "规则" "插入 ${out:-0} 条，重载 profile 后生效"
+  fi
+
+  say "出口收敛"
+  kv "配置" "$profile"
+  out=$(python3 "$HELPER" rules "$profile" $AI_DOMAINS 2>&1)
+  rc=$?
+  if [ "$rc" -eq 2 ]; then bad "解析" "配置文件缺失 rules: 字段，无法审计"; return 2; fi
+  _show_groups "$out"
+  groups=$(printf '%s\n' "$out" | awk -F'\t' '$1=="GROUPS"{print $2}')
+  echo
+  if [ "${groups:-0}" -le 1 ]; then ok "结论" "AI 域名已收敛至单一策略组"; else
+    bad "结论" "命中 $groups 个策略组，egress 未收敛"; printf '  修复: ip-please egress --fix\n'
+  fi
+  return $rc
+}
+
+# ---------- 出站熔断器 ----------
+cmd_guard() {
+  local sub="${1:-status}"
+  case "$sub" in
+    status)
+      if launchctl print system/local.ip-please.guard >/dev/null 2>&1; then ok "熔断器" "已加载"; else bad "熔断器" "未加载"; fi
+      [ -e "$PAUSE" ] && wrn "豁免标记" "存在（保险已暂停）" || ok "豁免标记" "无（熔断激活）"
+      if sudo -n true 2>/dev/null; then
+        if sudo pfctl -a "$ANCHOR" -sr 2>/dev/null | grep -q '^block'; then wrn "pf 规则" "已阻断（BLOCK）"; else ok "pf 规则" "空（STANDBY）"; fi
+      else
+        wrn "pf 规则" "未知（需 sudo）"
+      fi
+      ;;
+    install)
+      need_sudo || return 1
+      touch "$PAUSE"
+      . "$HERE/lib/install_guard.sh"
+      install_guard "$HERE" "$PROXY_PORT" "$ANCHOR" "${RELAUNCH_APP:-}" || { bad "安装" "失败"; return 1; }
+      ok "熔断器" "已安装（当前暂停，验证后执行 ip-please guard resume）"
+      ;;
+    pause)  touch "$PAUSE";  ok "豁免标记" "已创建，熔断豁免" ;;
+    resume) rm -f "$PAUSE";  ok "豁免标记" "已移除，熔断恢复生效" ;;
+    remove)
+      need_sudo || return 1
+      touch "$PAUSE"
+      . "$HERE/lib/install_guard.sh"
+      remove_guard
+      ok "熔断器" "已卸载"
+      ;;
+    test-soft)
+      local app="${2:-FlClash}" started=0
+      say "受控阻断测试（无 sudo，约 3 分钟）"
+      rm -f "$PAUSE"
+      _soft_restore() {
+        open -a "/Applications/$app.app" >/dev/null 2>&1
+        touch "$PAUSE"
+        printf '\n  已中断：客户端已尝试拉起，并写入豁免标记（出网不会继续被挡）\n'
+      }
+      trap _soft_restore INT TERM
+      osascript -e "quit app \"$app\"" >/dev/null 2>&1 || true
+      sleep 3
+      pkill -f "$app.app/Contents/MacOS/$app" 2>/dev/null || true
+      for _ in $(seq 1 9); do sleep 15; done
+      if curl -s --max-time 6 -o /dev/null https://api.ipify.org; then
+        bad "阻断" "代理已停但仍能出网，熔断器未生效"
+      else
+        ok "阻断" "出网已被切断（宽限期 120s 后生效）"
+      fi
+      open -a "/Applications/$app.app" >/dev/null 2>&1 || wrn "拉起" "请手动打开 $app"
+      for _ in $(seq 1 30); do
+        nc -z -G 1 127.0.0.1 "$PROXY_PORT" >/dev/null 2>&1 && { started=1; break; }
+        sleep 1
+      done
+      if [ "$started" -eq 1 ]; then
+        sleep 8
+        if curl -s --max-time 8 -o /dev/null https://api.ipify.org; then
+          ok "恢复" "代理回连后规则已在 5 秒内清空"
+        else
+          bad "恢复" "规则未清，执行: touch ~/.ip-please-pause"
+          touch "$PAUSE"
+        fi
+      else
+        wrn "代理未起" "已挂豁免标记，不会锁死"
+        touch "$PAUSE"
+      fi
+      trap - INT TERM
+      ;;
+    test)
+      need_sudo || return 1
+      say "受控阻断测试（约 10 秒）"
+      rm -f "$PAUSE"
+      sudo sh -c "echo \$(( \$(date +%s) - 1000 )) > /var/run/$ANCHOR.state"
+      osascript -e 'quit app "FlClash"' >/dev/null 2>&1 || true
+      sleep 8
+      if sudo pfctl -a "$ANCHOR" -sr 2>/dev/null | grep -q '^block'; then ok "跳闸" "规则已生效"; else bad "跳闸" "未生效"; fi
+      open -a /Applications/FlClash.app >/dev/null 2>&1 || true
+      for _ in $(seq 1 25); do nc -z -G 1 127.0.0.1 "$PROXY_PORT" >/dev/null 2>&1 && break; sleep 1; done
+      if ! nc -z -G 1 127.0.0.1 "$PROXY_PORT" >/dev/null 2>&1; then touch "$PAUSE"; wrn "代理未起" "已写入豁免标记，出站流量保持放行"; fi
+      sleep 6
+      if sudo pfctl -a "$ANCHOR" -sr 2>/dev/null | grep -q '^block'; then bad "恢复" "规则未清"; else ok "恢复" "规则已清"; fi
+      ;;
+    *) printf '用法: ip-please guard <status|install|pause|resume|remove|test>\n'; return 64 ;;
+  esac
+}
+
+cmd_panic() {
+  say "应急解除熔断"
+  touch "$PAUSE"
+  sudo -n launchctl bootout system "$PLIST" >/dev/null 2>&1
+  sudo -n pfctl -a "$ANCHOR" -F rules >/dev/null 2>&1
+  ok "解除" "完成（已创建豁免标记）"
+}
+
+# ---------- 本地痕迹 ----------
+cmd_residue() {
+  local mode="${1:-scan}" p size
+  local paths=(
+    "$HOME/.claude.json" "$HOME/.claude" "$HOME/.claude.json.backup"
+    "$HOME/Library/Application Support/Claude"
+    "$HOME/Library/Caches/com.anthropic.claudefordesktop"
+    "$HOME/Library/Preferences/com.anthropic.claudefordesktop.plist"
+    "$HOME/Library/Containers/com.anthropic.claudefordesktop"
+    "$HOME/.local/share/claude" "$HOME/.config/hotseat" "$HOME/.claude-chrome"
+  )
+  say "本地残留（账号切换前）"
+  for p in "${paths[@]}"; do
+    [ -e "$p" ] || continue
+    size=$(du -sh "$p" 2>/dev/null | awk '{print $1}')
+    printf '  %s %s\n' "$(pad "${p/#$HOME/~}" 56)" "${size:--}"
+  done
+  [ "$mode" = "--purge" ] || { printf '\n  这里只列出，不删除；需要清理请跑 ip-please residue --purge\n'; return 0; }
+  if [ ! -t 0 ]; then printf '\n  非交互环境，已取消\n'; return 1; fi
+  printf '\n  输入 DELETE 确认清理: '
+  read -r ans || ans=""
+  [ "$ans" = "DELETE" ] || { printf '  已取消\n'; return 1; }
+  local dest stamp
+  stamp=$(date +%Y%m%d-%H%M%S)
+  dest="$HOME/.ip-please-trash/$stamp"
+  mkdir -p "$dest"
+  for p in "${paths[@]}"; do
+    [ -e "$p" ] && mv "$p" "$dest/" 2>/dev/null && printf '  移动: %s\n' "${p/#$HOME/~}"
+  done
+  ok "清理" "已移到 ${dest/#$HOME/~}"
+}
+
+# ---------- 全量体检 ----------
+_client_checks() {
+  local pre="$1" fails=0
+  say "链路与熔断器"
+  pgrep -qf 'FlClash|Clash Verge|mihomo|sing-box' && ok "代理客户端" "运行中" || { bad "代理客户端" "未运行"; fails=$((fails + 1)); }
+  nc -z -G 1 127.0.0.1 "$PROXY_PORT" >/dev/null 2>&1 && ok "代理端口" "$PROXY_PORT" || { bad "代理端口" "未监听"; fails=$((fails + 1)); }
+  scutil --proxy | grep -q 'HTTPEnable : 1' && ok "系统代理" "开启" || { bad "系统代理" "未开启"; fails=$((fails + 1)); }
+  netstat -rn -f inet | grep -q '^128.0/1.*utun' && ok "TUN" "已接管" || { bad "TUN" "未接管"; fails=$((fails + 1)); }
+  if [ "$pre" = "1" ]; then
+    wrn "熔断器" "安装阶段跳过生效检查"
+  else
+    launchctl print system/local.ip-please.guard >/dev/null 2>&1 && ok "熔断器" "已加载" || { bad "熔断器" "未加载"; fails=$((fails + 1)); }
+  fi
+  [ -e "$PAUSE" ] && wrn "豁免标记" "存在（保险已暂停）" || ok "豁免标记" "无"
+  return $fails
+}
+
+cmd_doctor() {
+  local pre=0 fails=0 tmp
+  [ "${1:-}" = "--pre" ] && pre=1
+  case "$STYLE" in
+    plain|stack)
+      printf '=== ip-please doctor v%s   %s ===\n' "$VERSION" "$(date '+%F %H:%M')" ;;
+    *)
+      printf '%s╭──────────────────────────────────────────────────────╮%s\n' "$C_DIM" "$C_N"
+      printf '   ip-please doctor v%s   %s\n' "$VERSION" "$(date '+%F %H:%M')"
+      printf '%s╰──────────────────────────────────────────────────────╯%s\n' "$C_DIM" "$C_N" ;;
+  esac
+
+  tmp=$(mktemp -d) || { printf '无法创建临时目录\n' >&2; return 1; }
+  rm -f "$EXIT_CACHE"
+  ( cmd_ip           >"$tmp/ip"     2>&1; echo $? >"$tmp/ip.rc" ) &
+  ( cmd_dns          >"$tmp/dns"    2>&1; echo $? >"$tmp/dns.rc" ) &
+  ( cmd_egress       >"$tmp/egress" 2>&1; echo $? >"$tmp/egress.rc" ) &
+  ( cmd_risk         >"$tmp/risk"   2>&1; echo $? >"$tmp/risk.rc" ) &
+  wait
+
+  local s rcfile
+  for s in ip dns egress risk; do
+    cat "$tmp/$s"
+    rcfile="$tmp/$s.rc"
+    [ -s "$rcfile" ] && [ "$(cat "$rcfile")" -ne 0 ] && fails=$((fails + 1))
+  done
+  cmd_fingerprint || fails=$((fails + 1))
+  _client_checks "$pre" || fails=$((fails + $?))
+  rm -rf "$tmp"
+
+  case "$STYLE" in
+    plain|stack) printf '\n%s\n' "$(printf '=%.0s' $(seq 1 58))" ;;
+    *) printf '\n%s%s%s\n' "$C_DIM" "$(printf '─%.0s' $(seq 1 58))" "$C_N" ;;
+  esac
+  if [ "$fails" -eq 0 ]; then printf '  %s全部通过%s\n' "$C_OK" "$C_N"; else printf '  %s%d 项异常%s\n' "$C_BAD" "$fails" "$C_N"; fi
+  return "$fails"
+}
+
+usage() {
+  cat <<'EOF'
+ip-please —— 出口身份审计与防泄漏熔断 CLI（macOS）
+
+  ip-please doctor [--pre]       全量体检（--pre 跳过熔断状态检查）
+  ip-please ip                   出口身份：ASN / 反向域名 / 欺诈分 / geo
+  ip-please dns                  解析面：fake-ip 断言
+  ip-please egress [--fix]       出口收敛：AI 域名 → 单一策略组；--fix 收拢旁路域名
+  ip-please fingerprint          环境对齐：时区 / 语言 / 地理
+  ip-please risk                 风控面：Cloudflare challenge 探测
+  ip-please guard <sub>          出站熔断器: status|install|pause|resume|remove|test
+  ip-please panic                应急解除熔断
+  ip-please residue [--purge]    本地痕迹扫描 / 清理
+
+  全局: --plain | --stack | --badge | --unicode   输出风格
+        --profile <path>                         指定订阅 profile
+EOF
+}
+
+case "${1:-help}" in
+  doctor) shift; cmd_doctor "${1:-}" ;;
+  ip) cmd_ip ;;
+  dns) cmd_dns ;;
+  egress) shift; cmd_egress "${1:-}" ;;
+  fingerprint) cmd_fingerprint ;;
+  risk) cmd_risk ;;
+  guard) shift; cmd_guard "${1:-status}" ;;
+  panic) cmd_panic ;;
+  residue) shift; cmd_residue "${1:-scan}" ;;
+  version|-v|--version) printf 'ip-please %s\n' "$VERSION" ;;
+  *) usage ;;
+esac

@@ -1,0 +1,76 @@
+# Changelog
+
+本文件格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
+版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
+
+## [0.5.0] - 2026-11-25
+
+### Changed
+- **命令更名：`airlock` → `ip-please`**，与仓库名 `ip-please` 对齐；`airlock` 仍作为兼容别名安装
+- 内部标识随之迁移：`/etc/ip-please`、`local.ip-please.guard`、`/usr/local/bin/ip-please-guard`、`~/.ip-please-pause`、`IP_PLEASE_*` 环境变量
+- 安装器支持从 airlock / gecko / claude-guard 三代旧安装平滑迁移
+
+## [Unreleased]
+
+### Added
+- `docs/poster.svg`：模仿「ID, please / Papers, Please」的梗图，README 顶部展示
+- README 增加「边界：保号，不是 IP 洁癖」表格，明确覆盖与不覆盖的封号信号
+
+
+### Added
+- 英文 README（`README.md`），中文版移入 `README.zh-CN.md`
+- `docs/demo.svg`：由真实 `ip-please doctor` 输出生成的终端演示图
+- `.github/workflows/release.yml`：打 `v*` tag 自动打包并发布源码 tarball
+- Homebrew 公式模板 `packaging/homebrew/ip-please.rb`
+- `CODE_OF_CONDUCT.md`、`AGENTS.md`、`CLAUDE.md`
+- CI 增加 shellcheck 并通过全部告警修复
+
+### Changed
+- LICENSE 版权持有人改为 zahT3
+- 仓库名定为 `ip-please`；命令名保持 `ip-please`（缩写无可读性，命令用语义名）
+
+## [0.4.1] - 2026-11-25
+
+### Added
+- 熔断后可选自动拉起代理客户端（`RELAUNCH_APP`，默认关闭，每次阻断仅尝试一次）
+- `ip-please guard test-soft`：无需 sudo 的完整演练（阻断 → 自动拉起 → 恢复），中断会自动收尾
+
+### Changed
+- 拉起 GUI 应用改用 `launchctl asuser`，失败再退回 `sudo -u`
+
+## [0.4.0] - 2026-11-24
+
+### Changed
+- 项目更名为 ip-please（原 gecko）；守护进程、pf 锚点、配置目录、状态文件、环境变量全部随之迁移
+- 安装器支持从更早的两代安装（gecko / claude-guard）平滑迁移
+- 文案改为工程化表述：出站身份、出口收敛、环境一致性、出站熔断器
+
+## [0.3.3] - 2026-11-24
+
+### Changed
+- IP 画像改用 HTTPS 数据源（ipinfo + scamalytics），新增欺诈评分与反向域名判定住宅线路
+
+### Fixed
+- 出口数据缓存未校验新鲜度，可能读到上一次运行的残留
+
+## [0.3.2] - 2026-11-24
+
+### Changed
+- 输出改为 CJK 宽度精确对齐，新增 `--plain` / `--stack` / `--badge` 三种风格
+
+## [0.3.1] - 2026-11-24
+
+### Fixed
+- 浏览器策略脚本未使用参数导致 `set -u` 报错、策略文件被写空
+- 安装验证包含"保险已装载"检查，导致永远验证失败（新增 `--pre` 跳过）
+
+## [0.3.0] - 2026-11-24
+
+### Added
+- 出站熔断器 v3：pf 锚点自愈、规则条数核对、暂停时清冷却窗口
+- 单出口审计、环境一致性、风控探测、本地残留扫描
+- 22 条回归断言（熔断状态机 / 规则解析 / 安装时序）
+
+### Security
+- 移除明文 HTTP 的 IP 查询
+- 全部 `pf.conf` 编辑改为带 sudo，不再静默失败

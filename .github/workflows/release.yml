@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 打包源码
+        run: |
+          NAME="airlock-${GITHUB_REF_NAME#v}"
+          mkdir -p dist
+          git archive --format=tar --prefix="$NAME/" HEAD | tar -x -C dist
+          tar -czf "dist/$NAME.tar.gz" -C dist "$NAME"
+          sha256sum "dist/$NAME.tar.gz" > "dist/$NAME.tar.gz.sha256"
+          cat "dist/$NAME.tar.gz.sha256"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

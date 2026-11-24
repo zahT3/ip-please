@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="898" height="934" viewBox="0 0 898 934">
+  <style>
+    .bg{fill:#0d1117}.bar{fill:#161b22}.t{font-family:SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;fill:#c9d1d9}
+    .dim{fill:#8b949e}.grn{fill:#3fb950}.ylw{fill:#d29922}.red{fill:#f85149}.cyn{fill:#39c5cf}
+  </style>
+  <rect class="bg" x="0" y="0" width="898" height="934" rx="10"/>
+  <rect class="bar" x="0" y="0" width="898" height="30" rx="10"/>
+  <rect class="bar" x="0" y="20" width="898" height="10"/>
+  <circle cx="16" cy="15" r="5" fill="#ff5f56"/>
+  <circle cx="34" cy="15" r="5" fill="#ffbd2e"/>
+  <circle cx="52" cy="15" r="5" fill="#27c93f"/>
+  <text class="t dim" x="882" y="19" text-anchor="end">ip-please doctor</text>
+  <text class="t cyn" x="22" y="66">╭──────────────────────────────────────────────────────╮</text>
+  <text class="t" x="22" y="86">   ip-please doctor v0.5.0   2026-11-25 00:25</text>
+  <text class="t cyn" x="22" y="106">╰──────────────────────────────────────────────────────╯</text>
+  <text class="t" x="22" y="126"></text>
+  <text class="t cyn" x="22" y="146">▸ 出口身份</text>
+  <text class="t" x="22" y="166">  IP                     203.0.113.42</text>
+  <text class="t" x="22" y="186">  ASN                    AS64500 Example Telecom</text>
+  <text class="t" x="22" y="206">  reverse DNS            203-0-113-42.dynamic.example.net</text>
+  <text class="t grn" x="22" y="226">  欺诈评分                0 / 100  ✅</text>
+  <text class="t grn" x="22" y="246">  网络类型                住宅/家宽  ✅</text>
+  <text class="t grn" x="22" y="266">  出口 geo                NL  ✅</text>
+  <text class="t" x="22" y="286"></text>
+  <text class="t cyn" x="22" y="306">▸ 解析路径</text>
+  <text class="t grn" x="22" y="326">  claude.ai               198.18.0.23 (fake-ip)  ✅</text>
+  <text class="t grn" x="22" y="346">  api.anthropic.com       198.18.0.24 (fake-ip)  ✅</text>
+  <text class="t grn" x="22" y="366">  statsig.com             198.18.0.25 (fake-ip)  ✅</text>
+  <text class="t" x="22" y="386"></text>
+  <text class="t cyn" x="22" y="406">▸ 出口收敛</text>
+  <text class="t" x="22" y="426">  配置                   ~/Library/Application Support/&lt;client&gt;/profiles/&lt;profile&gt;.yaml</text>
+  <text class="t" x="22" y="446">  claude.ai                    🧲 AI-policy</text>
+  <text class="t" x="22" y="466">  claude.com                   🧲 AI-policy</text>
+  <text class="t" x="22" y="486">  anthropic.com                🧲 AI-policy</text>
+  <text class="t" x="22" y="506">  api.anthropic.com            🧲 AI-policy</text>
+  <text class="t" x="22" y="526">  console.anthropic.com        🧲 AI-policy</text>
+  <text class="t" x="22" y="546">  platform.claude.com          🧲 AI-policy</text>
+  <text class="t" x="22" y="566">  code.claude.com              🧲 AI-policy</text>
+  <text class="t" x="22" y="586">  releases.claude.com          🧲 AI-policy</text>
+  <text class="t" x="22" y="606">  downloads.claude.ai          🧲 AI-policy</text>
+  <text class="t" x="22" y="626">  preview.claude.ai            🧲 AI-policy</text>
+  <text class="t" x="22" y="646">  claudeusercontent.com        🧲 AI-policy</text>
+  <text class="t" x="22" y="666">  claudemcpcontent.com         🧲 AI-policy</text>
+  <text class="t" x="22" y="686">  statsig.anthropic.com        🧲 AI-policy</text>
+  <text class="t" x="22" y="706">  statsig.com                  🧲 AI-policy</text>
+  <text class="t" x="22" y="726">  sentry.io                    🧲 AI-policy</text>
+  <text class="t" x="22" y="746">  ingest.sentry.io             🧲 AI-policy</text>
+  <text class="t" x="22" y="766">  claude.googleapis.com        🧲 AI-policy</text>
+  <text class="t" x="22" y="786">  策略组数量: 1</text>
+  <text class="t" x="22" y="806"></text>
+  <text class="t grn" x="22" y="826">  结论                    AI 域名已收敛至单一策略组  ✅</text>
+  <text class="t" x="22" y="846"></text>
+  <text class="t cyn" x="22" y="866">▸ 风控探测</text>
+  <text class="t ylw" x="22" y="886">  claude.ai               Cloudflare 挑战（未登录请求常见）  ⚠️</text>
+  <text class="t grn" x="22" y="906">  chatgpt.com             HTTP 200  ✅</text>
+  <text class="t" x="22" y="926"></text>
+</svg>

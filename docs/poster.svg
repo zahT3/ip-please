@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6b1111"/>
+      <stop offset="1" stop-color="#2a0707"/>
+    </linearGradient>
+    <pattern id="grain" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="none"/>
+      <circle cx="1" cy="1" r="0.6" fill="#ffffff" opacity="0.05"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="640" fill="url(#bg)"/>
+  <rect width="1200" height="640" fill="url(#grain)"/>
+  <rect x="26" y="26" width="1148" height="588" fill="none" stroke="#e8dcc0" stroke-width="3" opacity="0.75"/>
+  <rect x="40" y="40" width="1120" height="560" fill="none" stroke="#e8dcc0" stroke-width="1" opacity="0.35"/>
+
+  <text x="600" y="112" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif"
+        font-size="30" letter-spacing="14" fill="#e8dcc0" opacity="0.9">EGRESS CONTROL · CHECKPOINT 01</text>
+
+  <text x="600" y="268" text-anchor="middle" font-family="Impact, 'Arial Black', sans-serif"
+        font-size="150" letter-spacing="8" fill="#f6efdc">IP, PLEASE</text>
+
+  <text x="600" y="318" text-anchor="middle" font-family="'Courier New', monospace"
+        font-size="24" letter-spacing="6" fill="#e8dcc0" opacity="0.85">A BORDER CHECKPOINT FOR YOUR OUTBOUND TRAFFIC</text>
+
+  <line x1="190" y1="352" x2="1010" y2="352" stroke="#e8dcc0" stroke-width="2" opacity="0.5"/>
+
+  <g font-family="'Courier New', monospace" font-size="21" fill="#f0e6d2" letter-spacing="1">
+    <text x="210" y="404">01  PRESENT YOUR PAPERS  ·  ASN / GEO / FRAUD SCORE</text>
+    <text x="210" y="444">02  STAMP OUT LEAKS     ·  WEBRTC / QUIC / PLAINTEXT DNS</text>
+    <text x="210" y="484">03  SEAL THE HATCH      ·  FAIL-CLOSED WHEN THE PROXY DIES</text>
+  </g>
+
+  <g transform="translate(985,470)">
+    <circle r="86" fill="none" stroke="#f6efdc" stroke-width="4" opacity="0.7"/>
+    <circle r="74" fill="none" stroke="#f6efdc" stroke-width="1.5" opacity="0.5"/>
+    <text y="-26" text-anchor="middle" font-family="Impact, sans-serif" font-size="20" fill="#f6efdc" opacity="0.85">VERIFIED</text>
+    <text y="4" text-anchor="middle" font-family="Impact, sans-serif" font-size="26" fill="#f6efdc">RESIDENTIAL</text>
+    <text y="34" text-anchor="middle" font-family="'Courier New', monospace" font-size="15" fill="#f6efdc" opacity="0.8">AS64500 · NL</text>
+  </g>
+
+  <text x="210" y="556" font-family="'Courier New', monospace" font-size="19" fill="#e8dcc0" opacity="0.8">
+    ip-please · macOS · exit-identity audit + fail-closed circuit breaker
+  </text>
+  <text x="210" y="586" font-family="'Courier New', monospace" font-size="17" fill="#e8dcc0" opacity="0.55">
+    $ ip-please doctor  →  inspect · assert · seal
+  </text>
+</svg>

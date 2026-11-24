@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 shellcheck
+        run: brew install shellcheck
+
+      - name: 语法与静态检查
+        run: make lint
+
+      - name: 个人数据与密钥扫描
+        run: make audit
+
+      - name: 回归测试
+        run: make test
