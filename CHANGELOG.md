@@ -41,6 +41,12 @@
 ## [Unreleased]
 
 ### Added
+- `scripts/quickstart.sh`：一键安装（检查环境 → 装 brew 包 → 装系统侧组件 → 体检），支持 `--dry-run`
+- `docs/quickstart.zh-CN.md` / `docs/quickstart.md`：面向不熟悉命令行的用户的分步教程与常见问题
+- README 顶部加入复制粘贴安装入口
+
+
+### Added
 - `docs/poster.svg`：模仿「ID, please / Papers, Please」的梗图，README 顶部展示
 - README 增加「边界：保号，不是 IP 洁癖」表格，明确覆盖与不覆盖的封号信号
 

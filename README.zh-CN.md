@@ -8,6 +8,12 @@
 
 [English](README.md) · [变更记录](CHANGELOG.md) · [安全策略](SECURITY.md)
 
+**不懂命令行？** 有复制粘贴就能装好的版本 —— 见 [小白安装指南](docs/quickstart.zh-CN.md)。
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/zahT3/ip-please/main/scripts/quickstart.sh)"
+```
+
 ![IP, please —— 给你的出站流量设一道边检](docs/poster.svg)
 
 每次出网都是一次过关。`ip-please` 在 Mac 上设下这道关口：核验每个连接的出口身份（ASN、geo、欺诈评分、反向域名），排查四类已知泄漏路径（WebRTC、QUIC、明文 DNS、未完成出口收敛的策略组）。一旦代理链路中断，出站熔断器立即触发 fail-closed 阻断，防止真实地址直连泄漏。
@@ -66,7 +72,7 @@ Homebrew：
 ```bash
 brew install zahT3/tap/ip-please
 # 系统侧组件（写 /etc、调用 launchctl 加载服务，需要 sudo）
-sudo "$(brew --prefix ip-please)/libexec/install.sh"
+"$(brew --prefix ip-please)/libexec/install.sh"
 ```
 
 ## 命令

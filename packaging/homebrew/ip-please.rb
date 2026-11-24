@@ -26,7 +26,7 @@ class IpPlease < Formula
     <<~EOS
       ip-please 还需要安装系统侧的熔断器与浏览器策略（会写 /etc、加载 launchd，需要 sudo）：
 
-        sudo #{libexec}/install.sh
+        #{libexec}/install.sh
 
       卸载系统侧组件：
 

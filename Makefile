@@ -13,12 +13,12 @@ test:
 
 lint:
 	@if command -v shellcheck >/dev/null 2>&1; then \
-		shellcheck -S warning bin/ip-please lib/*.sh install.sh uninstall.sh tests/*.sh && echo 'shellcheck: OK'; \
+		shellcheck -S warning bin/ip-please lib/*.sh scripts/*.sh install.sh uninstall.sh tests/*.sh && echo 'shellcheck: OK'; \
 	else \
 		echo 'shellcheck 未安装，跳过（brew install shellcheck）'; \
 	fi
 	@python3 -m py_compile lib/ip_please.py lib/claude_env.py && echo 'python 语法: OK'
-	@for f in bin/ip-please lib/*.sh install.sh uninstall.sh tests/*.sh; do bash -n "$$f" || exit 1; done
+	@for f in bin/ip-please lib/*.sh scripts/*.sh install.sh uninstall.sh tests/*.sh; do bash -n "$$f" || exit 1; done
 	@echo 'bash 语法: OK'
 
 audit:

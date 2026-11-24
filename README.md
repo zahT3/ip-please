@@ -8,6 +8,12 @@
 
 [中文说明](README.zh-CN.md) · [Changelog](CHANGELOG.md) · [Security](SECURITY.md)
 
+**Not a command-line person?** There is a copy-paste installer — see [Quickstart](docs/quickstart.md).
+
+```bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/zahT3/ip-please/main/scripts/quickstart.sh)"
+```
+
 ![IP, please — a border checkpoint for your outbound traffic](docs/poster.svg)
 
 Every outbound connection crosses a border. `ip-please` runs the checkpoint on your Mac: each connection must present its papers (ASN, geo, fraud score, reverse DNS), the known smuggling routes get patted down (WebRTC, QUIC, plaintext DNS, unconverged policy groups), and when the proxy path dies the hatch is sealed instead of letting your real address walk out.
@@ -66,7 +72,7 @@ Homebrew:
 ```bash
 brew install zahT3/tap/ip-please
 # system side (writes /etc, loads launchd, needs sudo)
-sudo "$(brew --prefix ip-please)/libexec/install.sh"
+"$(brew --prefix ip-please)/libexec/install.sh"
 ```
 
 ## Commands
