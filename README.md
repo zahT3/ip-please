@@ -77,6 +77,16 @@ brew install zahT3/tap/ip-please
 "$(brew --prefix ip-please)/libexec/install.sh"
 ```
 
+## What the installer changes
+
+| Target | Change |
+|---|---|
+| Claude Code | proxy env (`HTTP_PROXY`, `socks5h`) and **telemetry off** (5 env vars); `IP_PLEASE_KEEP_TELEMETRY=1` keeps telemetry |
+| Claude Desktop | nothing configurable (no public telemetry switch); its traffic is pinned to the same egress |
+| Browsers | WebRTC / QUIC policies (Chrome, Brave) |
+| System | IPv6 off; pf anchor + launchd breaker |
+| Egress | no proxy or subscription setup — bring your own client |
+
 ## Commands
 
 | Command | Semantics |

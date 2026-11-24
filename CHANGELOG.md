@@ -38,6 +38,14 @@
 - `FINGERPRINT_STRICT=1`：地区不一致一律判失败；默认只在 zh/ja/ko 语言下判失败
 - `tests/fingerprint_test.sh` 扩展到 11 项断言
 
+## [0.5.5] - 2026-11-25
+
+### Added
+- 安装时默认关闭 Claude Code 遥测（5 个环境变量），`IP_PLEASE_KEEP_TELEMETRY=1` 可保留
+- quickstart 增加代理客户端预检（7890 未监听时给出安装指引，`--skip-proxy-check` 可跳过）
+- 文档补充「安装器会改什么」与「能不能关掉遥测」两节
+- `tests/claude_env_test.sh`
+
 ## [Unreleased]
 
 ### Added

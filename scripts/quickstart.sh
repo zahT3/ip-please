@@ -26,6 +26,24 @@ ask() { # ask <prompt>  -> 读到 /dev/tty，兼容 bash -c "$(curl ...)"
 [ "$(uname -m)" = "arm64" ] && ARCH="Apple Silicon" || ARCH="Intel"
 ok "macOS $(sw_vers -productVersion) / ${ARCH}"
 
+say "第 0 步：检查代理客户端"
+SKIP_PROXY=0
+for a in "${1:-}" "${2:-}"; do [ "$a" = "--skip-proxy-check" ] && SKIP_PROXY=1; done
+if nc -z -G 1 127.0.0.1 7890 >/dev/null 2>&1; then
+  ok "代理端口 7890 正在监听"
+elif [ "$SKIP_PROXY" = "1" ]; then
+  warn "跳过代理检查（--skip-proxy-check）"
+else
+  warn "没检测到本地代理端口 7890"
+  printf '  请先安装并启动代理客户端（FlClash / Clash Verge Rev / sing-box），\n  打开「系统代理」和「TUN」，导入订阅后再跑这个脚本。\n'
+  for app in FlClash "Clash Verge" sing-box; do
+    [ -d "/Applications/$app.app" ] && printf '  检测到已安装: %s（请启动它）\n' "$app"
+  done
+  printf '  FlClash 下载: https://github.com/chen08209/FlClash/releases\n'
+  printf '  只想先装工具、跳过检查: 加参数 --skip-proxy-check\n'
+  exit 1
+fi
+
 say "第 1 步：检查 Homebrew"
 if command -v brew >/dev/null 2>&1; then
   ok "已安装 Homebrew"

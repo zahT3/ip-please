@@ -12,6 +12,14 @@ import time
 
 SETTINGS = os.path.expanduser("~/.claude/settings.json")
 KEYS = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY")
+# 默认关闭 Claude Code 的遥测与反馈上报；IP_PLEASE_KEEP_TELEMETRY=1 可保留
+TELEMETRY = {
+    "DISABLE_TELEMETRY": "1",
+    "DISABLE_ERROR_REPORTING": "1",
+    "DISABLE_FEEDBACK_COMMAND": "1",
+    "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+}
 
 
 def load():
@@ -44,6 +52,8 @@ def main():
             "ALL_PROXY": f"socks5h://127.0.0.1:{port}",
             "NO_PROXY": "localhost,127.0.0.1,::1",
         })
+        if os.environ.get("IP_PLEASE_KEEP_TELEMETRY") != "1":
+            env.update(TELEMETRY)
     elif action == "remove":
         for k in KEYS:
             env.pop(k, None)
@@ -52,7 +62,7 @@ def main():
         return 64
 
     save(data)
-    print(json.dumps({k: env.get(k) for k in KEYS if k in env}, indent=2))
+    print(json.dumps({k: v for k, v in env.items() if k in KEYS or k in TELEMETRY}, indent=2))
     return 0
 
 

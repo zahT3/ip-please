@@ -8,6 +8,15 @@
 - 这台 Mac 的**开机密码**（安装时会问一次）
 - 能正常上网
 
+## 先看：一键脚本不做什么
+
+它只装**防护**，不装代理、不登录账号。所以新 Mac 的正确顺序是：
+
+1. 装代理客户端（FlClash 等）→ 导入订阅 → 打开「系统代理」和「TUN」
+2. 再跑本文的一键脚本（会先检查 7890 端口在不在听）
+3. 装 Claude Code / Claude Desktop，登录
+4. `ipp doctor` 确认全绿
+
 ## 第 1 步：打开「终端」
 
 按 `Command + 空格`，输入 `终端`（或 `Terminal`），回车。会出现一个白底或黑底的小窗口，这就是终端。
@@ -66,6 +75,14 @@ ipp doctor
 | 提示 `Operation not permitted` | 系统设置 → 隐私与安全性 → 完全磁盘访问权限，把「终端」加进去 |
 | 想暂停防护 | `ipp guard pause`（恢复：`ipp guard resume`） |
 | 想彻底卸载 | `"$(brew --prefix ip-please)/libexec/uninstall.sh" && brew uninstall ip-please` |
+
+## 遥测：关了哪些，哪些关不掉
+
+| 客户端 | 遥测 |
+|---|---|
+| **Claude Code** | ✅ 会关。安装时往 `~/.claude/settings.json` 写入 `DISABLE_TELEMETRY`、`DISABLE_ERROR_REPORTING`、`DISABLE_FEEDBACK_COMMAND`、`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`、`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`。想保留遥测：`IP_PLEASE_KEEP_TELEMETRY=1 ./install.sh` |
+| **Claude Desktop** | ❌ 关不掉。桌面端没有公开的遥测开关（企业版才有 managed 配置）。工具能做的是让它的全部流量走同一个出口，不泄漏 IP；数据仍会按产品设计发给 Anthropic |
+| **浏览器** | 工具只关 WebRTC 非代理 UDP 和 QUIC，不碰浏览器自己的统计 |
 
 ## 这个脚本做了什么（安全说明）
 
