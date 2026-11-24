@@ -27,7 +27,7 @@ ipp doctor  # 本机真实体检（会发起网络请求）
 
 ## 改动规范
 
-- 动了 `lib/guard.sh`、`lib/ip_please.py` 的解析逻辑、或 `install.sh` 的顺序 → 必须同步更新 `tests/` 下对应文件。
+- 动了 `lib/guard.sh`、`lib/ip_please.py` 的解析逻辑、`lib/redact.sh` 的脱敏规则、或 `install.sh` 的顺序 → 必须同步更新 `tests/` 下对应文件。
 - 版本号在 `bin/ip-please` 的 `VERSION`；用户可见变化写进 `CHANGELOG.md` 的 `## [Unreleased]`。
 - 提交信息用 conventional commits：`feat:` / `fix:` / `docs:` / `test:` / `chore:`。
 - 文档改动：中文在 `README.zh-CN.md`，英文在 `README.md`；两边的命令与状态机必须一致。

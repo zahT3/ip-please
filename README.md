@@ -86,7 +86,7 @@ sudo "$(brew --prefix ip-please)/libexec/install.sh"
 
 Short forms: `ipp` (primary), plus `ipplz`, `ip-please`, `airlock` aliases. The repository stays `ip-please`.
 
-Global flags: `--profile <path>` to pick a subscription file; `--plain` / `--stack` / `--badge` / `--unicode` for output style.
+Global flags: `--profile <path>` to pick a subscription file; `--plain` / `--stack` / `--badge` / `--unicode` for output style; `--redact` replaces the real exit identity with example values before printing, so output is safe to screenshot and share.
 
 ## The circuit breaker
 

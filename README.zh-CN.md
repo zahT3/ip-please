@@ -86,7 +86,7 @@ sudo "$(brew --prefix ip-please)/libexec/install.sh"
 
 短命令：`ipp`（主用），另有 `ipplz` / `ip-please` / `airlock` 别名；仓库名保持 `ip-please`。
 
-全局参数：`--profile <path>` 指定订阅文件；`--plain` / `--stack` / `--badge` / `--unicode` 切换输出格式。
+全局参数：`--profile <path>` 指定订阅文件；`--plain` / `--stack` / `--badge` / `--unicode` 切换输出格式；`--redact` 打印前把真实出口身份替换成示例值，输出可直接截图分享。
 
 ## 出站熔断器
 

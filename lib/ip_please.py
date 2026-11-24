@@ -8,6 +8,7 @@
   fix <profile> <group> <domain>...   把规则插到 rules: 之后，输出插入条数
 """
 import json
+import os
 import re
 import sys
 
@@ -64,6 +65,7 @@ def cmd_ipjson():
 
 
 def cmd_rules(argv):
+    mask = os.environ.get("IP_PLEASE_REDACT") == "1"
     domains = argv[1:]
     lines, rules = split_rules(argv[0])
     if rules is None:
@@ -73,6 +75,8 @@ def cmd_rules(argv):
     for d in domains:
         r = match(rules, d)
         g = r.rsplit(',', 1)[-1].strip() if r else '(无匹配)'
+        if mask and g != '(无匹配)':
+            g = 'AI-policy'
         groups.setdefault(g, []).append(d)
         print(f'{d}\t{g}')
     print(f'GROUPS\t{len(groups)}')

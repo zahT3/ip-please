@@ -15,6 +15,12 @@
 ### Added
 - 短命令 `ipp`（主用），并安装 `ipplz` / `ip-please` / `airlock` 别名；仓库名保持 `ip-please`
 
+## [0.5.2] - 2026-11-25
+
+### Added
+- `--redact`：打印前把真实出口身份（IP / ASN / 反查 / 用户路径 / 订阅 profile / 时区地区 / 策略组名）替换成示例值，输出可直接截图分享
+- `tests/redact_test.sh`：脱敏回归（敏感值必须消失、示例值必须出现、fake-ip 不被误改）
+
 ## [Unreleased]
 
 ### Added
