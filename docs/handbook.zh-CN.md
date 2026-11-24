@@ -244,7 +244,24 @@ Claude 网页版或桌面客户端 → 设置（Settings）→ 隐私（Privacy�
 
 判断依据永远是三件套：ASN 归属、反向域名（`dynamic`/`ppp`/`broadband` 才是家宽）、欺诈分。
 
-### Q18：报错但我不确定该发什么给人看
+### Q18：切了节点，`ipp ip` 的结果却一直不变
+
+两个原因，都正常：
+
+1. **10 分钟缓存**：出口信息缓存 10 分钟，避免每次检查都打接口。加 `--refresh` 强制刷新：
+   ```bash
+   ipp ip --refresh
+   ```
+2. **信息源限流**：`ipinfo.io` 免费额度是按 IP 算的，走共享节点时容易 429。新版本会自动回退到 `ip-api.com`（拿国家、ASN、反查、hosting 标记），不需要你处理。
+
+手动清缓存也可以：
+
+```bash
+rm -f "${TMPDIR:-/tmp}/ip-please-exit-$(id -u).cache"
+ipp ip
+```
+
+### Q19：报错但我不确定该发什么给人看
 
 跑：
 
@@ -323,7 +340,7 @@ PROFILE_DIR="~/Library/Application Support/<客户端>/profiles"
 ## 9. 安全说明
 
 - 不收集、不上传任何数据；没有任何后端
-- 体检只访问公开的 IP 信息接口（ipinfo / scamalytics）
+- 体检只访问公开的 IP 信息接口（ipinfo / scamalytics；限流时回退 ip-api.com），不经过任何自建后端
 - 安装脚本会写 `/etc`、加载 launchd、写浏览器策略，全部代码都在仓库里可审
 - 许可证 MIT
 

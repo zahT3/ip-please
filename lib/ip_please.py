@@ -73,12 +73,26 @@ def group_names(path):
 
 def cmd_ipjson():
     data = json.load(sys.stdin)
+    if isinstance(data, dict) and ("error" in data or "status" in data and data.get("status") == 429):
+        return 1
     host = data.get('hostname') or ''
     print('\t'.join([
         str(data.get('country') or ''),
         str(data.get('org') or ''),
         host if host != data.get('ip') else '',
     ]))
+
+
+def cmd_ipapi():
+    d = json.load(sys.stdin)
+    if d.get("status") != "success":
+        return 1
+    cc = d.get("countryCode") or ""
+    org = d.get("as") or d.get("isp") or d.get("org") or ""
+    host = d.get("reverse") or ""
+    hosting = "1" if d.get("hosting") else "0"
+    print(f"{cc}\t{org}\t{host}\t{hosting}")
+    return 0
 
 
 def cmd_rules(argv):
@@ -132,6 +146,8 @@ def main():
     cmd, argv = sys.argv[1], sys.argv[2:]
     if cmd == 'ipjson':
         return cmd_ipjson() or 0
+    if cmd == 'ipapi':
+        return cmd_ipapi() or 0
     if cmd == 'rules':
         return cmd_rules(argv)
     if cmd == 'fix':

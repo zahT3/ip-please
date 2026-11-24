@@ -70,6 +70,16 @@
 - 出口探针与 AI 路径对齐：`ipp egress --fix` 会把 `ipinfo.io` / `api.scamalytics.com` 一起钉进 AI 策略组
 - `ipp egress` 与 `ipp ip` 会提示「探针路径与 Claude 出口不一致」，避免把默认路由的结果当成 AI 出口
 
+## [0.6.0] - 2026-11-25
+
+### Added
+- `--refresh`：跳过 10 分钟出口缓存，切节点后可立即复测
+- 出口信息多源回退：ipinfo 限流/失败时自动改用 ip-api（国家、ASN、反查、hosting 标记），反查兜底用 `dig -x`
+- 「网络类型」判定加入 hosting 标记与更多 ISP 反查关键词（bbtec / ocn / comcast 等）
+
+### Fixed
+- 切节点后 `ipp ip` 结果不变（缓存 + ipinfo 429 导致无法刷新）
+
 ## [Unreleased]
 
 ### Added

@@ -2,7 +2,7 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.5.8"
+VERSION="0.6.0"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -29,6 +29,7 @@ for a in "$@"; do
   case "$a" in
     --plain|--stack|--badge|--unicode) STYLE="${a#--}";;
     --redact) REDACT=1;;
+    --refresh|-r) REFRESH=1;;
     --profile) PROFILE_NEXT=1;;
     *) if [ "${PROFILE_NEXT:-0}" = 1 ]; then PROFILE_PATH="$a"; PROFILE_NEXT=0; else ARGS+=("$a"); fi;;
   esac
@@ -94,15 +95,32 @@ need_sudo() { sudo -n true 2>/dev/null || sudo -v || { printf '需要管理员�
 UA_DEFAULT="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/158.0.0.0 Safari/537.36"
 
 fetch_exit() {
-  local ip info fraud
-  ip=$(curl -s --max-time 10 https://api.ipify.org 2>/dev/null)
+  local ip fraud line cc org host hosting
+  ip=$(curl -s --max-time 8 https://api.ipify.org 2>/dev/null)
+  [ -z "$ip" ] && ip=$(curl -s --max-time 8 "https://ipinfo.io/json" 2>/dev/null |
+    sed -n 's/.*"ip": *"\([0-9.]*\)".*/\1/p' | head -1)
   [ -z "$ip" ] && return 1
-  info=$(curl -s --max-time 12 "https://ipinfo.io/${ip}/json" 2>/dev/null)
-  [ -z "$info" ] && return 1
-  fraud=$(curl -s --max-time 10 -A "$UA_DEFAULT" "https://scamalytics.com/ip/${ip}" 2>/dev/null |
+
+  # 首选 ipinfo；限流/失败时退回 ip-api（含 reverse 与 hosting 标记）
+  line=$(curl -s --max-time 12 "https://ipinfo.io/${ip}/json" 2>/dev/null |
+    python3 "$HELPER" ipjson 2>/dev/null)
+  if [ -z "$line" ]; then
+    line=$(curl -s --max-time 12 \
+      "http://ip-api.com/json/${ip}?fields=status,countryCode,as,isp,org,hosting,proxy,reverse" 2>/dev/null |
+      python3 "$HELPER" ipapi 2>/dev/null)
+  fi
+  [ -z "$line" ] && return 1
+
+  IFS=$'\t' read -r cc org host hosting <<EOF
+$line
+EOF
+  if [ -z "${host:-}" ]; then
+    host=$(dig +short -x "$ip" 2>/dev/null | head -1 | sed 's/\.$//')
+  fi
+  fraud=$(curl -s --max-time 8 -A "$UA_DEFAULT" "https://scamalytics.com/ip/${ip}" 2>/dev/null |
     sed -n 's/.*Fraud Score: *\([0-9][0-9]*\).*/\1/p' | head -1)
-  printf '%s\t%s\n' "$(printf '%s' "$info" | python3 "$HELPER" ipjson 2>/dev/null)" "${fraud:--}" > "$EXIT_CACHE.tmp" || return 1
-  printf '%s\t%s\n' "$(cat "$EXIT_CACHE.tmp")" "$ip" > "$EXIT_CACHE"
+  printf '%s\t%s\t%s\t%s\n' "${cc:-}" "${org:-}" "${host:-}" "${fraud:--}" > "$EXIT_CACHE.tmp" || return 1
+  printf '%s\t%s\n' "$(cat "$EXIT_CACHE.tmp")" "${ip}|${hosting:-0}" > "$EXIT_CACHE"
   rm -f "$EXIT_CACHE.tmp"
   return 0
 }
@@ -110,8 +128,13 @@ fetch_exit() {
 _cache_fresh() { [ -f "$EXIT_CACHE" ] && [ -n "$(find "$EXIT_CACHE" -mmin -10 2>/dev/null)" ]; }
 
 read_exit() {
+  if [ "${REFRESH:-0}" = "1" ]; then rm -f "$EXIT_CACHE"; fi
   if ! _cache_fresh; then fetch_exit || return 1; fi
-  IFS=$'\t' read -r CC ORG HOST FRAUD IP < "$EXIT_CACHE" || return 1
+  local _ipline
+  IFS=$'\t' read -r CC ORG HOST FRAUD _ipline < "$EXIT_CACHE" || return 1
+  IP="${_ipline%%|*}"
+  HOSTING="${_ipline#*|}"
+  [ "$HOSTING" = "$_ipline" ] && HOSTING=0
   case "${IP:-}" in
     [0-9]*.[0-9]*.[0-9]*.[0-9]*) return 0 ;;
     *) rm -f "$EXIT_CACHE"; return 1 ;;
@@ -122,14 +145,21 @@ cmd_ip() {
   local fail=0 residential=unknown
   say "出口身份"
   if ! read_exit; then bad "出口" "拿不到出口信息"; return 1; fi
+  if [ "${REFRESH:-0}" != "1" ] && _cache_fresh; then
+    info "数据来源" "10 分钟缓存（切节点后加 --refresh 强制刷新）"
+  fi
   kv "IP" "$IP"
   kv "ASN" "$ORG"
   [ -n "${HOST:-}" ] && kv "reverse DNS" "$HOST"
-  case "${HOST:-}" in
-    *dynamic*|*dsl*|*ppp*|*broadband*|*hinet-ip*|*static*) residential=1 ;;
-    "") residential=unknown ;;
-    *) residential=0 ;;
-  esac
+  if [ "${HOSTING:-0}" = "1" ]; then
+    residential=0
+  else
+    case "${HOST:-}" in
+      *dynamic*|*dsl*|*ppp*|*broadband*|*bbtec*|*ocn*|*plala*|*biglobe*|*so-net*|*au-net*|*dion*|*mesh*|*comcast*|*cox*|*charter*|*verizon*|*sbcglobal*|*att*|*btcentralplus*|*wanadoo*|*orange*|*free.fr*|*ziggo*|*kpn*|*telenet*|*telekom*|*vodafone*|*movistar*|*telia*|*hinet*|*static*|*pool*|*dhcp*|*cable*|*fiber*) residential=1 ;;
+      "") residential=unknown ;;
+      *) residential=0 ;;
+    esac
+  fi
   [ "${FRAUD:-}" = "-" ] || [ -z "${FRAUD:-}" ] && wrn "欺诈评分" "未取到（scamalytics 不可达）" || {
     if [ "$FRAUD" -le 25 ]; then ok "欺诈评分" "$FRAUD / 100"; else wrn "欺诈评分" "$FRAUD / 100（偏高）"; fail=$((fail + 1)); fi
   }
@@ -537,6 +567,7 @@ ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please�
 
   全局: --plain | --stack | --badge | --unicode   输出风格
         --redact                                 把真实出口身份替换成示例值（截图用）
+        --refresh                                忽略 10 分钟缓存，强制重新探测
         --profile <path>                         指定订阅 profile
 EOF
 }
