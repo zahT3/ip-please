@@ -58,6 +58,16 @@ The goal is keeping the account alive; the mechanism is controlling the egress s
 3. **Failures converge** — apply fail-closed blocking to web egress when the proxy dies, overriding the client's default fail-open behaviour.
 4. **Self-recoverable** — every blocking path ships an escape hatch and a TTL rollback, so the operator is never locked out.
 
+## Configuration
+
+Put preferences in `~/.config/ip-please/config.sh` (works with Homebrew installs too):
+
+```bash
+AI_GROUP="AI"             # your policy group name
+PROXY_PORT=7890           # client mixed port
+RELAUNCH_APP="FlClash"    # app to relaunch after a block
+```
+
 ## Install
 
 ```bash

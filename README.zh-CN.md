@@ -58,6 +58,16 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/zahT3/ip-please/main/scr
 3. **故障可收敛** —— 代理失活时对 Web 流量执行 fail-closed 阻断，覆盖客户端默认的 fail-open 行为。
 4. **自身可恢复** —— 阻断路径内置熔断豁免标记与 TTL 自动回退，保留运维接管通道。
 
+## 配置
+
+把偏好写进 `~/.config/ip-please/config.sh` 即可（brew 安装同样生效）：
+
+```bash
+AI_GROUP="🧲 海外AI"      # 你的 AI 策略组名
+PROXY_PORT=7890           # 客户端混合端口
+RELAUNCH_APP="FlClash"    # 熔断后尝试拉起
+```
+
 ## 安装
 
 ```bash

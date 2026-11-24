@@ -56,6 +56,14 @@
 ### Changed
 - README 修正客户端支持表述：熔断/探测与客户端无关，`egress` 仅支持 Clash 系 YAML
 
+## [0.5.7] - 2026-11-25
+
+### Added
+- 用户级配置 `~/.config/ip-please/config.sh`（brew 安装也能改 AI_GROUP / PROXY_PORT 等，不用动 libexec）
+
+### Fixed
+- `egress` 找不到 profile 时提示被命令替换吞掉、用户看不到错误
+
 ## [Unreleased]
 
 ### Added

@@ -270,11 +270,14 @@ ipp doctor --redact
 每个机场的策略组名字都不一样（「节点选择」「Proxy」「🚀 自动选择」…）。两个地方要对上：
 
 ```bash
-# config.sh
+# ~/.config/ip-please/config.sh（brew 安装也能用，不用动 libexec）
 AI_GROUP="你的 AI 策略组名字"     # egress 审计与 --fix 往哪组钉规则
 PROXY_PORT=7890                  # 你客户端的混合端口
 RELAUNCH_APP="Clash Verge"       # 可选：熔断后尝试拉起的 app 名
+PROFILE_DIR="~/Library/Application Support/<客户端>/profiles"
 ```
+
+改配置有三种方式，优先级从低到高：内置默认值 → `~/.config/ip-please/config.sh` → 仓库里的 `config.sh`（开发用）。临时测试也可以直接给环境变量：`AI_GROUP="🧲 海外AI" ipp egress --fix`。
 
 - `ipp egress --fix` **会先校验**这个组名是否存在于订阅里；不存在会拒绝写入并列出可用组名，不会把你的配置写坏。
 - 订阅目录不同：默认自动探测常见位置；找不到时 `ipp egress --profile ~/path/to/config.yaml`，或在 `config.sh` 设 `PROFILE_DIR`。

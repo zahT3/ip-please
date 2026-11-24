@@ -2,11 +2,13 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.5.6"
+VERSION="0.5.7"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
 . "$HERE/config.example.sh"
+# 用户级配置：brew 安装也能改，不用动 libexec
+[ -f "$HOME/.config/ip-please/config.sh" ] && . "$HOME/.config/ip-please/config.sh"
 [ -f "$HERE/config.sh" ] && . "$HERE/config.sh"
 
 HELPER="$HERE/lib/ip_please.py"
@@ -276,11 +278,7 @@ resolve_profile() {
   if [ -z "$p" ]; then
     p=$(ls -t "$HOME/.config/clash"/*.yaml 2>/dev/null | head -1)
   fi
-  [ -n "$p" ] && [ -f "$p" ] || {
-    bad "订阅配置" "找不到 Clash 系 YAML profile"
-    printf '  用 --profile <路径> 指定，或在 config.sh 设置 PROFILE_DIR\n'
-    return 1
-  }
+  [ -n "$p" ] && [ -f "$p" ] || return 1
   printf '%s\n' "$p"
 }
 
@@ -294,7 +292,12 @@ _show_groups() {
 cmd_egress() {
   local fix=0 profile out rc groups
   [ "${1:-}" = "--fix" ] && fix=1
-  profile=$(resolve_profile) || return 1
+  profile=$(resolve_profile) || {
+    bad "订阅配置" "找不到 Clash 系 YAML profile"
+    printf '  指定路径: ipp egress --profile <path>\n'
+    printf '  或写配置: ~/.config/ip-please/config.sh 里设 PROFILE_DIR\n'
+    return 1
+  }
 
   if [ "$fix" -eq 1 ]; then
     say "把旁路域名钉进 $AI_GROUP"
