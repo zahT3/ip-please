@@ -39,6 +39,8 @@
 
 ## 2. 新机器完整流程（Day 0）
 
+![新机器上的正确顺序：标「自动」的由工具完成](img/04-flow.svg)
+
 ### 第 1 步：装代理，先让网络通
 
 1. 下载代理客户端（例如 [FlClash](https://github.com/chen08209/FlClash/releases)）
@@ -56,6 +58,8 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/zahT3/ip-please/main/scr
 
 它会：检查代理 → 装 Homebrew（如果没有）→ 装工具 → 装系统防护（**会要一次密码**）→ 自动体检。
 
+![一键安装跑完的样子：五个步骤依次打勾](img/03-install.svg)
+
 ### 第 3 步：装 Claude，登录
 
 Claude Code（命令行）或 Claude Desktop（图形界面）任选，装好后登录。
@@ -67,6 +71,8 @@ ipp doctor
 ```
 
 看到 `全部通过` 即完成。有红色项就翻第 5 节。
+
+![ipp doctor 的输出：每个分组都带 ✅，最后一行「全部通过」](img/01-doctor.svg)
 
 ### 第 5 步（建议）：对齐时区
 
@@ -87,6 +93,8 @@ ipp doctor
 ---
 
 ## 4. 日常怎么用（三条命令就够了）
+
+![日常体检的输出长这样](img/01-doctor.svg)
 
 ```bash
 ipp doctor          # 体检：出口身份、泄漏面、环境一致性、熔断器
@@ -114,25 +122,29 @@ ipp guard resume    # 改完再恢复防护
 
 **原因**：代理断了，熔断器按设计 fail-closed 把网页端口挡住了。
 
+![断网急救三步：panic → 启动客户端 → 重新武装](img/02-panic.svg)
+
 **急救（30 秒）**：
 
 ```bash
-ipp panic
+ipp panic                                   # 1. 立刻放行（最迟 5 秒生效）
+# 2. 启动代理客户端，确认 7890 有监听
+ipp guard install && ipp guard resume       # 3. 重新加载熔断器并恢复防护
 ```
 
-或者：
+`ipp panic` 会写一个豁免标记 `~/.ip-please-pause`，即使没有 sudo 权限，熔断器下一轮也会自行放行。想手动兜底：
 
 ```bash
+touch ~/.ip-please-pause
 sudo launchctl bootout system /Library/LaunchDaemons/local.ip-please.guard.plist
 sudo pfctl -a ip-please-guard -F rules
-touch ~/.ip-please-pause
 ```
 
-网络恢复后，检查代理客户端是否在运行、7890 端口是否在监听，正常了再：
+网络恢复后重新武装：
 
 ```bash
 rm -f ~/.ip-please-pause
-sudo launchctl bootstrap system /Library/LaunchDaemons/local.ip-please.guard.plist
+ipp guard install && ipp guard resume
 ```
 
 ### Q2：提示 `ipp: command not found`

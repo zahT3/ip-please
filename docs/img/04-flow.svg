@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="640" viewBox="0 0 980 760">
+  <rect width="980" height="640" fill="#0b1220"/>
+  <text x="40" y="52" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="26" font-weight="700" fill="#f0f6fc">新机器上的正确顺序</text>
+  <text x="40" y="82" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="16" fill="#8b949e">标「自动」的由工具完成，标「手动」的需要你自己做</text>
+  <rect x="40" y="120" width="900" height="70" rx="10" fill="#0c0f16" stroke="#24324a"/>
+  <rect x="40" y="120" width="96" height="70" rx="10" fill="#d29922" opacity="0.15"/>
+  <text x="88" y="163" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="18" fill="#d29922">手动</text>
+  <text x="156" y="163" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="19" fill="#c9d1d9">① 装代理客户端，导入订阅，开系统代理 + TUN</text>
+  <rect x="40" y="216" width="900" height="70" rx="10" fill="#0c0f16" stroke="#24324a"/>
+  <rect x="40" y="216" width="96" height="70" rx="10" fill="#3fb950" opacity="0.15"/>
+  <text x="88" y="259" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="18" fill="#3fb950">自动</text>
+  <text x="156" y="259" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="19" fill="#c9d1d9">② 跑一键脚本：装 ip-please + 熔断器 + 浏览器策略</text>
+  <rect x="40" y="312" width="900" height="70" rx="10" fill="#0c0f16" stroke="#24324a"/>
+  <rect x="40" y="312" width="96" height="70" rx="10" fill="#d29922" opacity="0.15"/>
+  <text x="88" y="355" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="18" fill="#d29922">手动</text>
+  <text x="156" y="355" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="19" fill="#c9d1d9">③ 装 Claude Code / Desktop，登录</text>
+  <rect x="40" y="408" width="900" height="70" rx="10" fill="#0c0f16" stroke="#24324a"/>
+  <rect x="40" y="408" width="96" height="70" rx="10" fill="#3fb950" opacity="0.15"/>
+  <text x="88" y="451" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="18" fill="#3fb950">自动</text>
+  <text x="156" y="451" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="19" fill="#c9d1d9">④ ipp doctor 体检，全绿再开始用</text>
+  <rect x="40" y="504" width="900" height="70" rx="10" fill="#0c0f16" stroke="#24324a"/>
+  <rect x="40" y="504" width="96" height="70" rx="10" fill="#d29922" opacity="0.15"/>
+  <text x="88" y="547" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="18" fill="#d29922">手动</text>
+  <text x="156" y="547" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="19" fill="#c9d1d9">⑤ 建议：系统时区/地区改成和出口一致</text>
+</svg>

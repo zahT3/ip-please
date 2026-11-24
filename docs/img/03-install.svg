@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="610" viewBox="0 0 980 610">
+  <rect width="980" height="610" fill="#0b1220"/>
+  <text x="40" y="52" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="26" font-weight="700" fill="#f0f6fc">一键安装跑完的样子</text>
+  <text x="40" y="82" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="16" fill="#8b949e">看到「完成」即成功；第 3 步会要一次管理员密码</text>
+  <rect x="40" y="120" width="900" height="62" rx="10" fill="#0c0f16" stroke="#24324a"/>
+  <text x="64" y="160" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#39c5cf">0.</text>
+  <text x="98" y="160" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="18" fill="#c9d1d9">检查代理端口 7890</text>
+  <text x="908" y="160" text-anchor="end" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="17" fill="#3fb950">✅ 监听中</text>
+  <rect x="40" y="198" width="900" height="62" rx="10" fill="#0c0f16" stroke="#24324a"/>
+  <text x="64" y="238" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#39c5cf">1.</text>
+  <text x="98" y="238" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="18" fill="#c9d1d9">检查 Homebrew</text>
+  <text x="908" y="238" text-anchor="end" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="17" fill="#3fb950">✅ 已安装</text>
+  <rect x="40" y="276" width="900" height="62" rx="10" fill="#0c0f16" stroke="#24324a"/>
+  <text x="64" y="316" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#39c5cf">2.</text>
+  <text x="98" y="316" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="18" fill="#c9d1d9">安装 ip-please</text>
+  <text x="908" y="316" text-anchor="end" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="17" fill="#3fb950">✅ 完成</text>
+  <rect x="40" y="354" width="900" height="62" rx="10" fill="#0c0f16" stroke="#24324a"/>
+  <text x="64" y="394" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#39c5cf">3.</text>
+  <text x="98" y="394" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="18" fill="#c9d1d9">安装系统侧熔断器</text>
+  <text x="908" y="394" text-anchor="end" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="17" fill="#3fb950">✅ 需要输入一次密码</text>
+  <rect x="40" y="432" width="900" height="62" rx="10" fill="#0c0f16" stroke="#24324a"/>
+  <text x="64" y="472" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#39c5cf">4.</text>
+  <text x="98" y="472" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="18" fill="#c9d1d9">自动体检</text>
+  <text x="908" y="472" text-anchor="end" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="17" fill="#3fb950">✅ 全部通过</text>
+  <text x="40" y="536" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="20" fill="#3fb950">安装完成 —— 接着装 Claude、登录，再跑 ipp doctor</text>
+</svg>

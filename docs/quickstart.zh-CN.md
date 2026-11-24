@@ -42,6 +42,8 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/zahT3/ip-please/main/scr
 
 ## 第 4 步：看到「全部通过」就成了
 
+![安装过程：五个步骤依次打勾](img/03-install.svg)
+
 最后屏幕上会出现类似：
 
 ```
@@ -53,6 +55,8 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/zahT3/ip-please/main/scr
 ```
 
 有黄色 ⚠️ 或红色 ❌ 也不代表坏，把截图发给维护者就行。
+
+![ipp doctor 的输出](img/01-doctor.svg)
 
 ## 以后怎么用
 

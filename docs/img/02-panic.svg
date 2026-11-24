@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="658" viewBox="0 0 980 658">
+  <rect width="980" height="658" fill="#0b1220"/>
+  <text x="40" y="52" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="26" font-weight="700" fill="#f0f6fc">断网急救：三步恢复（约 30 秒）</text>
+  <text x="40" y="82" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="16" fill="#8b949e">症状：装完后网页打不开、Claude 连不上，但 WiFi 正常</text>
+  <rect x="40" y="128" width="900" height="100" rx="12" fill="#0c0f16" stroke="#24324a"/>
+  <circle cx="88" cy="178" r="22" fill="#1f2937" stroke="#39c5cf" stroke-width="2"/>
+  <text x="88" y="186" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="22" font-weight="700" fill="#39c5cf">1</text>
+  <text x="128" y="172" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#3fb950">ipp panic</text>
+  <text x="128" y="204" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="16" fill="#8b949e">立刻放行（写入豁免标记，最迟 5 秒生效）</text>
+  <rect x="40" y="254" width="900" height="100" rx="12" fill="#0c0f16" stroke="#24324a"/>
+  <circle cx="88" cy="304" r="22" fill="#1f2937" stroke="#39c5cf" stroke-width="2"/>
+  <text x="88" y="312" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="22" font-weight="700" fill="#39c5cf">2</text>
+  <text x="128" y="298" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#3fb950">启动代理客户端，确认 7890 在监听</text>
+  <text x="128" y="330" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="16" fill="#8b949e">等客户端连接成功</text>
+  <rect x="40" y="380" width="900" height="100" rx="12" fill="#0c0f16" stroke="#24324a"/>
+  <circle cx="88" cy="430" r="22" fill="#1f2937" stroke="#39c5cf" stroke-width="2"/>
+  <text x="88" y="438" text-anchor="middle" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="22" font-weight="700" fill="#39c5cf">3</text>
+  <text x="128" y="424" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#3fb950">ipp guard install &amp;&amp; ipp guard resume</text>
+  <text x="128" y="456" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="16" fill="#8b949e">重新加载熔断器并恢复防护</text>
+  <rect x="40" y="506" width="900" height="104" rx="12" fill="#0f1b14" stroke="#1f5132"/>
+  <text x="64" y="546" font-family="SFMono-Regular, Menlo, Consolas, monospace" font-size="18" fill="#3fb950">✅ 出网恢复正常</text>
+  <text x="64" y="580" font-family="PingFang SC, Hiragino Sans GB, sans-serif" font-size="15" fill="#8b949e">仍不通：跑 ipp doctor 看哪项红，再查 101 手册第 5 节 QA</text>
+</svg>

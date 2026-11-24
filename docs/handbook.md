@@ -27,6 +27,8 @@ For first-time users. After reading this you will know what it does, what is aut
 
 ## Day 0 flow
 
+![Correct order on a new Mac](img/04-flow.svg)
+
 1. Install a proxy client, import your subscription, enable System Proxy + TUN; make sure `https://claude.ai` opens.
 2. Run the installer:
    ```bash
@@ -34,6 +36,8 @@ For first-time users. After reading this you will know what it does, what is aut
    ```
 3. Install Claude Code or Claude Desktop and sign in.
 4. Run `ipp doctor`; all green means done.
+
+![What a passing doctor run looks like](img/01-doctor.svg)
 5. Recommended: set macOS region/timezone to match the exit country.
 
 ## Daily use
@@ -48,7 +52,9 @@ ipp guard resume    # after
 
 ## FAQ highlights
 
-- **No internet after install**: the breaker tripped. Run `ipp panic` (or `touch ~/.ip-please-pause`), fix the proxy, then `rm ~/.ip-please-pause`.
+- **No internet after install**: the breaker tripped. Run `ipp panic`, start the proxy client, then `ipp guard install && ipp guard resume`.
+
+  ![Three-step rescue](img/02-panic.svg)
 - **`command not found`**: add Homebrew to PATH (`eval "$(/opt/homebrew/bin/brew shellenv)"`).
 - **`Operation not permitted`**: grant Full Disk Access to Terminal.
 - **Breaker flaps**: check the client port (default 7890) and `/etc/ip-please/guard.conf`.
