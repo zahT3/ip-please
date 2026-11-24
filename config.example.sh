@@ -10,7 +10,8 @@ AI_GROUP="${AI_GROUP:-AI}"   # 填你客户端里 AI 相关策略组的名字
 AI_DOMAINS="${AI_DOMAINS:-claude.ai claude.com anthropic.com api.anthropic.com console.anthropic.com platform.claude.com code.claude.com releases.claude.com downloads.claude.ai preview.claude.ai claudeusercontent.com claudemcpcontent.com statsig.anthropic.com statsig.com sentry.io ingest.sentry.io claude.googleapis.com}"
 PIN_DOMAINS="${PIN_DOMAINS:-statsig.com claude.googleapis.com}"
 
-PROFILE_DIR="${PROFILE_DIR:-$HOME/Library/Application Support/com.follow.clash/profiles}"
+# 订阅 profile 目录（留空 = 自动探测 FlClash / Clash Verge / ClashX / mihomo 等常见位置）
+PROFILE_DIR="${PROFILE_DIR:-}"
 PROFILE_PATH="${PROFILE_PATH:-}"
 
 DISABLE_IPV6="${DISABLE_IPV6:-1}"

@@ -169,7 +169,8 @@ macOS 原生环境：bash 3.2、pfctl、launchctl、curl、python3（由 Xcode C
 ## 限制
 
 - 仅支持 macOS。
-- 需自行配置代理客户端（支持 FlClash / Clash Verge Rev / mihomo / sing-box）。
+- 需自行配置代理客户端：熔断器与各项探测与客户端无关，只要求本机有代理端口 + TUN。
+- `egress` 的出口收敛审计需要 Clash 系 YAML 订阅（FlClash / Clash Verge Rev / ClashX / mihomo / Stash）；sing-box / Surge / V2Ray 的配置不会被解析，其余检查照常。
 - `egress --fix` 直接修改本地订阅文件；外部更新订阅后需重新执行，未重跑前 `doctor` 会报告出口收敛状态偏离。
 - 存在多个配置文件时默认读取最新 mtime 文件，多配置场景需用 `--profile` 显式指定。
 - 不含移动端支持（iOS / Android 系统级 VPN 接口无此类旁路泄漏路径）。

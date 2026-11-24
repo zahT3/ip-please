@@ -54,6 +54,23 @@ def match(rules, domain):
     return None
 
 
+def group_names(path):
+    """读取 proxy-groups 里的策略组名，找不到该段时返回 []。"""
+    lines = open(path, encoding='utf-8', errors='ignore').read().split('\n')
+    names, inside = [], False
+    for line in lines:
+        if re.match(r'^proxy-groups:\s*$', line):
+            inside = True
+            continue
+        if inside:
+            if line and not line[0].isspace():
+                break
+            m = re.match(r'\s*-\s*name:\s*(.+?)\s*$', line)
+            if m:
+                names.append(unescape(m.group(1).strip().strip('"')))
+    return names
+
+
 def cmd_ipjson():
     data = json.load(sys.stdin)
     host = data.get('hostname') or ''
@@ -85,6 +102,10 @@ def cmd_rules(argv):
 
 def cmd_fix(argv):
     path, group, domains = argv[0], argv[1], argv[2:]
+    names = group_names(path)
+    if names and group not in names:
+        sys.stderr.write("策略组不存在: %s\n可用: %s\n" % (group, ", ".join(names)))
+        return 3
     lines, rules = split_rules(path)
     if rules is None:
         print('PARSE_ERROR', file=sys.stderr)

@@ -2,7 +2,7 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.5.5"
+VERSION="0.5.6"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -260,10 +260,27 @@ cmd_risk() {
 
 # ---------- 出口收敛 ----------
 resolve_profile() {
-  local p="${PROFILE_PATH:-}"
+  local p="${PROFILE_PATH:-}" d
   p="${p/#\~/$HOME}"
-  if [ -z "$p" ]; then p=$(ls -t "$PROFILE_DIR"/*.yaml 2>/dev/null | head -1); fi
-  [ -n "$p" ] && [ -f "$p" ] || { bad "订阅配置" "找不到 profile（用 --profile 指定）"; return 1; }
+  if [ -n "$p" ] && [ -f "$p" ]; then printf '%s\n' "$p"; return 0; fi
+  d="${PROFILE_DIR:-}"
+  if [ -n "$d" ]; then
+    p=$(ls -t "$d"/*.yaml "$d"/*.yml 2>/dev/null | head -1)
+  fi
+  if [ -z "$p" ]; then
+    p=$(ls -t "$HOME/Library/Application Support"/*/profiles/*.yaml 2>/dev/null | head -1)
+  fi
+  if [ -z "$p" ]; then
+    p=$(ls -t "$HOME/Library/Application Support"/*/*.yaml 2>/dev/null | head -1)
+  fi
+  if [ -z "$p" ]; then
+    p=$(ls -t "$HOME/.config/clash"/*.yaml 2>/dev/null | head -1)
+  fi
+  [ -n "$p" ] && [ -f "$p" ] || {
+    bad "订阅配置" "找不到 Clash 系 YAML profile"
+    printf '  用 --profile <路径> 指定，或在 config.sh 设置 PROFILE_DIR\n'
+    return 1
+  }
   printf '%s\n' "$p"
 }
 
@@ -283,7 +300,9 @@ cmd_egress() {
     say "把旁路域名钉进 $AI_GROUP"
     cp "$profile" "$profile.bak-ip-please-$(date +%H%M%S)" 2>/dev/null || { bad "备份" "无法写入 $profile"; return 1; }
     if ! out=$(python3 "$HELPER" fix "$profile" "$AI_GROUP" $PIN_DOMAINS 2>&1); then
-      bad "写入" "$out"; return 1
+      bad "写入" "$out"
+      printf '  修复: 在 config.sh 里把 AI_GROUP 改成你订阅里的策略组名\n'
+      return 1
     fi
     ok "规则" "插入 ${out:-0} 条，重载 profile 后生效"
   fi

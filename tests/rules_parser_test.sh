@@ -44,5 +44,24 @@ grep -q 'DOMAIN-SUFFIX,claude.googleapis.com,🎯 绕过代理' "$PROFILE" && pr
 python3 "$HELPER" fix "$TMP/norules.yaml" g a.com >/dev/null 2>&1; rc=$?
 expect_rc "fix 缺 rules 段时返回 2 而非崩溃" 2 "$rc"
 
+# 策略组名校验：组不存在时拒绝写入，避免把订阅写坏
+cat > "$TMP/groups.yaml" <<'EOF'
+proxy-groups:
+  - name: "🚀 节点选择"
+    type: select
+    proxies: [DIRECT]
+  - name: "AI"
+    type: select
+    proxies: [DIRECT]
+rules:
+  - DOMAIN-SUFFIX,claude.ai,AI
+  - MATCH,DIRECT
+EOF
+err=$(python3 "$HELPER" fix "$TMP/groups.yaml" "不存在的组" claude.ai 2>&1); rc=$?
+expect_rc "fix 拒绝不存在的策略组" 3 "$rc"
+printf '%s' "$err" | grep -q '🚀 节点选择' && printf '  PASS  错误信息列出可用组\n' || { printf '  FAIL  未列出可用组\n'; fail=$((fail+1)); }
+n=$(python3 "$HELPER" fix "$TMP/groups.yaml" "AI" example.com); rc=$?
+expect_rc "fix 接受已存在的策略组" 0 "$rc"
+
 [ "$fail" -eq 0 ] && { echo "全部通过"; exit 0; }
 echo "$fail 项失败"; exit 1

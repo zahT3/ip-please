@@ -69,6 +69,10 @@ ipp guard resume    # after
 
 Full details (in Chinese): [handbook.zh-CN.md](handbook.zh-CN.md).
 
+## Client compatibility
+
+The breaker and probes (`ip`, `risk`, `fingerprint`, `residue`) are client-agnostic — they only need a local proxy port (`PROXY_PORT`, default 7890) plus TUN. The `egress` policy-group audit needs a Clash-family YAML profile (FlClash, Clash Verge Rev, ClashX, mihomo, Stash); sing-box / Surge / V2Ray configs are not parsed. Profile discovery auto-scans common locations; override with `--profile` or `PROFILE_DIR`. `ipp egress --fix` validates that `AI_GROUP` exists in the subscription before writing, and lists available group names otherwise.
+
 ## Boundaries
 
 Account hygiene (passwords, 2FA, sharing, billing region), request behaviour, content, proxy node quality, and Claude Desktop telemetry are out of scope. The tool covers the network egress surface only.

@@ -225,7 +225,11 @@ rm -f ~/.ip-please-pause
 
 正常，第一次装 Homebrew 需要它。等弹窗装完（几分钟），再重新跑脚本。
 
-### Q15：报错但我不确定该发什么给人看
+### Q15：我用的不是 FlClash / 不是 Clash 系客户端
+
+熔断器、`ip`、`risk`、`fingerprint`、`residue` 照常可用（改 `PROXY_PORT` 即可）。只有 `egress` 依赖 Clash 系 YAML 订阅；sing-box / Surge / V2Ray 会提示找不到 profile，这属于预期。详见第 7 节。
+
+### Q16：报错但我不确定该发什么给人看
 
 跑：
 
@@ -248,7 +252,38 @@ ipp doctor --redact
 
 ---
 
-## 7. 安全说明
+## 7. 客户端兼容性：不是 FlClash 也能用
+
+**核心功能与客户端无关**，只要本机有本地代理端口 + TUN：
+
+| 能力 | 依赖什么 | 非 Clash 客户端 |
+|---|---|---|
+| 熔断器（代理断线自动阻断） | 本地端口是否可连（默认 7890，可改 `PROXY_PORT`） | ✅ 通用 |
+| `ipp ip` / `ipp risk` | 一次 HTTPS 请求 | ✅ 通用 |
+| `ipp fingerprint` | 系统时区/语言/地区 | ✅ 通用 |
+| `ipp residue` | 本地文件路径 | ✅ 通用 |
+| `ipp dns`（fake-ip 断言） | Clash 系 TUN 的 fake-ip 网段 | ⚠️ 仅适用 Clash 系 TUN |
+| `ipp egress`（策略组审计 / `--fix`） | **Clash 系 YAML 订阅**里的 `rules:` + `proxy-groups:` | ❌ 不适用 sing-box / Surge / V2Ray |
+
+### 订阅命名不同怎么办
+
+每个机场的策略组名字都不一样（「节点选择」「Proxy」「🚀 自动选择」…）。两个地方要对上：
+
+```bash
+# config.sh
+AI_GROUP="你的 AI 策略组名字"     # egress 审计与 --fix 往哪组钉规则
+PROXY_PORT=7890                  # 你客户端的混合端口
+RELAUNCH_APP="Clash Verge"       # 可选：熔断后尝试拉起的 app 名
+```
+
+- `ipp egress --fix` **会先校验**这个组名是否存在于订阅里；不存在会拒绝写入并列出可用组名，不会把你的配置写坏。
+- 订阅目录不同：默认自动探测常见位置；找不到时 `ipp egress --profile ~/path/to/config.yaml`，或在 `config.sh` 设 `PROFILE_DIR`。
+
+### 没有 TUN / 只用系统代理的客户端
+
+熔断器仍然有效（它只判断端口），但 `dns` 的 fake-ip 断言不适用（没有 fake-ip 就会显示解析路径异常）。这类客户端建议在客户端里开启 TUN 再跑体检。
+
+## 8. 安全说明
 
 - 不收集、不上传任何数据；没有任何后端
 - 体检只访问公开的 IP 信息接口（ipinfo / scamalytics）
@@ -257,7 +292,7 @@ ipp doctor --redact
 
 ---
 
-## 8. 术语表
+## 9. 术语表
 
 | 词 | 含义 |
 |---|---|
@@ -273,7 +308,7 @@ ipp doctor --redact
 
 ---
 
-## 9. 求助
+## 10. 求助
 
 - 提 Issue：<https://github.com/zahT3/ip-please/issues>（附 `ipp doctor --redact` 输出）
 - 先搜已有 Issue，多半有人踩过同样的坑

@@ -165,7 +165,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [CODE_OF
 ## Limitations
 
 - macOS only.
-- Bring your own proxy client (FlClash / Clash Verge Rev / mihomo / sing-box).
+- Bring your own proxy client (anything that exposes a local proxy port + TUN; the breaker and probes are client-agnostic).
+- `egress` (egress-convergence audit) needs a Clash-family YAML profile — FlClash, Clash Verge Rev, ClashX, mihomo, Stash. sing-box / Surge / V2Ray configs are not parsed; the other checks still work.
 - `egress --fix` edits a local subscription file; rerun after the subscription updates, otherwise `doctor` reports drift.
 - With several subscription files the newest mtime wins; pass `--profile` to be explicit.
 - No mobile coverage (system-level VPN on iOS/Android has no such bypass path).

@@ -46,6 +46,16 @@
 - 文档补充「安装器会改什么」与「能不能关掉遥测」两节
 - `tests/claude_env_test.sh`
 
+## [0.5.6] - 2026-11-25
+
+### Added
+- 订阅 profile 自动探测（FlClash / Clash Verge / ClashX / mihomo 等常见目录），`PROFILE_DIR` 可留空
+- `ipp egress --fix` 写入前校验 `AI_GROUP` 是否存在，不存在则拒绝并列出可用策略组，避免写坏订阅
+- 手册新增「客户端兼容性」章节 + QA：非 Clash 客户端能用哪些、不能用哪些
+
+### Changed
+- README 修正客户端支持表述：熔断/探测与客户端无关，`egress` 仅支持 Clash 系 YAML
+
 ## [Unreleased]
 
 ### Added
