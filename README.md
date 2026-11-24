@@ -8,7 +8,9 @@
 
 [中文说明](README.zh-CN.md) · [Changelog](CHANGELOG.md) · [Security](SECURITY.md)
 
-**Not a command-line person?** There is a copy-paste installer — see [Quickstart](docs/quickstart.md).
+**Not a command-line person?** Copy-paste installer — see [Quickstart](docs/quickstart.md).
+
+**Want the full picture?** Read the [101 Handbook](docs/handbook.md): full flow, what is automated vs manual, and a complete FAQ.
 
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/zahT3/ip-please/main/scripts/quickstart.sh)"

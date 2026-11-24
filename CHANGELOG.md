@@ -49,6 +49,12 @@
 ## [Unreleased]
 
 ### Added
+- `docs/handbook.zh-CN.md`：101 手册（全自动 vs 手动对照、新机流程、15 条 QA、术语表）
+- `docs/handbook.md`：英文精简版
+- `docs/README.md`：文档地图；README 与 quickstart 增加入口
+
+
+### Added
 - `scripts/build_pkg.sh`：构建未签名 `.pkg`（装到 `/usr/local/ip-please`，postinstall 自动装系统侧组件）
 - Release workflow 增加 macOS pkg 构建与上传
 - `.pkg` 安装方式与 Gatekeeper 放行说明（中英）

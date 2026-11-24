@@ -10,6 +10,8 @@
 
 **不懂命令行？** 有复制粘贴就能装好的版本 —— 见 [小白安装指南](docs/quickstart.zh-CN.md)。
 
+**想系统了解？** 读 [101 手册](docs/handbook.zh-CN.md)：全流程、哪些是全自动、哪些要手动、以及一份完整 QA。
+
 ```bash
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/zahT3/ip-please/main/scripts/quickstart.sh)"
 ```
