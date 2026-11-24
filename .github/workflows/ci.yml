@@ -3,16 +3,20 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
-    runs-on: macos-latest
+  portable:
+    name: portable (ubuntu)
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: 安装 shellcheck
-        run: brew install shellcheck
 
       - name: 语法与静态检查
         run: make lint
@@ -22,3 +26,16 @@ jobs:
 
       - name: 回归测试
         run: make test
+
+  macos:
+    name: macos smoke
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 回归测试（真实 macOS）
+        run: make test
+
+      - name: 隐私审计
+        run: make audit
