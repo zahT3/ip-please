@@ -229,7 +229,11 @@ rm -f ~/.ip-please-pause
 
 熔断器、`ip`、`risk`、`fingerprint`、`residue` 照常可用（改 `PROXY_PORT` 即可）。只有 `egress` 依赖 Clash 系 YAML 订阅；sing-box / Surge / V2Ray 会提示找不到 profile，这属于预期。详见第 7 节。
 
-### Q16：报错但我不确定该发什么给人看
+### Q16：「Help improve Claude」在哪关？
+
+Claude 网页版或桌面客户端 → 设置（Settings）→ 隐私（Privacy）→ 关掉 **Help improve Claude**。关掉后新对话不会再用于训练。这是账号设置，工具无法代劳。
+
+### Q17：报错但我不确定该发什么给人看
 
 跑：
 
@@ -246,7 +250,7 @@ ipp doctor --redact
 - **账号本身**：密码强度、2FA、是否多人共用、支付方式与地区
 - **内容与行为**：请求频率、生成内容是否触发审核
 - **代理**：节点质量、订阅、是否被墙
-- **Claude Desktop 遥测**：消费版没有开关
+- **Claude Desktop 遥测**：消费版界面没有遥测开关；训练数据开关（Help improve Claude）要手动关，见第 8 节清单
 
 工具的边界是**网络出口面**。把这一面做干净能显著降低风控概率，但不等于"账号绝对不会被封"。
 
@@ -286,7 +290,26 @@ PROFILE_DIR="~/Library/Application Support/<客户端>/profiles"
 
 熔断器仍然有效（它只判断端口），但 `dns` 的 fake-ip 断言不适用（没有 fake-ip 就会显示解析路径异常）。这类客户端建议在客户端里开启 TUN 再跑体检。
 
-## 8. 安全说明
+## 8. 账号侧设置清单（手动，建议逐条做）
+
+网络出口只是风控的一半，另一半在账号本身。这些工具做不了，但值得照着点一遍：
+
+| # | 做什么 | 在哪 |
+|---|---|---|
+| 1 | 关掉「Help improve Claude」（不拿你的对话训练模型） | Claude 网页/客户端：设置 → 隐私 → Privacy → 关 **Help improve Claude** |
+| 2 | 开启两步验证（2FA） | 账号设置 → 安全 |
+| 3 | 一个账号固定一个出口，不要今天日本明天美国 | 客户端里给账号固定节点 |
+| 4 | 不与人共享账号、不买「共享号」 | —— |
+| 5 | 支付方式与账号地区保持一致，别用代付/礼品卡套利 | 账号设置 → 账单 |
+| 6 | 不把会话 token / cookie 交给第三方面板、中转站 | —— |
+| 7 | 浏览器按账号隔离（不同 profile），别同一浏览器来回切换 | Chrome/Brave 的用户配置 |
+| 8 | 注册邮箱/手机号保持稳定，别频繁换 | —— |
+| 9 | 控制请求频率，别做批量自动化 | —— |
+| 10 | 不装来路不明的「Claude 增强插件」（可能劫持会话） | —— |
+
+> 工具能保证的是**网络出口一致**；上面这些是**身份与行为一致**。两者都做到，风控概率才最低。
+
+## 9. 安全说明
 
 - 不收集、不上传任何数据；没有任何后端
 - 体检只访问公开的 IP 信息接口（ipinfo / scamalytics）
@@ -295,7 +318,7 @@ PROFILE_DIR="~/Library/Application Support/<客户端>/profiles"
 
 ---
 
-## 9. 术语表
+## 10. 术语表
 
 | 词 | 含义 |
 |---|---|
@@ -311,7 +334,7 @@ PROFILE_DIR="~/Library/Application Support/<客户端>/profiles"
 
 ---
 
-## 10. 求助
+## 11. 求助
 
 - 提 Issue：<https://github.com/zahT3/ip-please/issues>（附 `ipp doctor --redact` 输出）
 - 先搜已有 Issue，多半有人踩过同样的坑

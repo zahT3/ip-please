@@ -85,7 +85,8 @@ ipp doctor
 | 客户端 | 遥测 |
 |---|---|
 | **Claude Code** | ✅ 会关。安装时往 `~/.claude/settings.json` 写入 `DISABLE_TELEMETRY`、`DISABLE_ERROR_REPORTING`、`DISABLE_FEEDBACK_COMMAND`、`CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY`、`CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`。想保留遥测：`IP_PLEASE_KEEP_TELEMETRY=1 ./install.sh` |
-| **Claude Desktop** | ❌ 关不掉。桌面端没有公开的遥测开关（企业版才有 managed 配置）。工具能做的是让它的全部流量走同一个出口，不泄漏 IP；数据仍会按产品设计发给 Anthropic |
+| **Claude Desktop** | ⚠️ 分两层：**训练数据**开关在 设置 → 隐私 → 「Help improve Claude」，需要手动关；**崩溃/产品分析遥测**消费版没有界面开关（企业 managed 配置才有）。工具只保证它的流量走同一出口 |
+| **账号侧** | 2FA、支付地区、不共享账号等手动项，见 [101 手册第 8 节](handbook.zh-CN.md#8-账号侧设置清单手动建议逐条做) |
 | **浏览器** | 工具只关 WebRTC 非代理 UDP 和 QUIC，不碰浏览器自己的统计 |
 
 ## 这个脚本做了什么（安全说明）

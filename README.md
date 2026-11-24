@@ -94,7 +94,7 @@ brew install zahT3/tap/ip-please
 | Target | Change |
 |---|---|
 | Claude Code | proxy env (`HTTP_PROXY`, `socks5h`) and **telemetry off** (5 env vars); `IP_PLEASE_KEEP_TELEMETRY=1` keeps telemetry |
-| Claude Desktop | nothing configurable (no public telemetry switch); its traffic is pinned to the same egress |
+| Claude Desktop | nothing configurable by us: training-data opt-out ("Help improve Claude") is manual under Settings → Privacy; crash/analytics telemetry has no consumer switch. Its traffic is pinned to the same egress |
 | Browsers | WebRTC / QUIC policies (Chrome, Brave) |
 | System | IPv6 off; pf anchor + launchd breaker |
 | Egress | no proxy or subscription setup — bring your own client |

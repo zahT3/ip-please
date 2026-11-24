@@ -94,7 +94,7 @@ brew install zahT3/tap/ip-please
 | 对象 | 改动 |
 |---|---|
 | Claude Code | 写入代理变量（`HTTP_PROXY` / `socks5h`）并**关闭遥测**（5 个环境变量）；`IP_PLEASE_KEEP_TELEMETRY=1` 可保留 |
-| Claude Desktop | 不改配置（它没有公开的遥测开关）；只保证它的流量都走同一出口 |
+| Claude Desktop | 不改配置：训练数据开关「Help improve Claude」在 设置 → 隐私，需手动关；崩溃/分析遥测消费版无界面开关。工具只保证流量走同一出口 |
 | 浏览器 | 写入 WebRTC / QUIC 策略（Chrome、Brave） |
 | 系统 | IPv6 关闭；pf 锚点 + launchd 熔断器 |
 | 网络出口 | 不做任何代理/订阅配置——那部分需要你自己装客户端 |

@@ -67,6 +67,11 @@
 ## [Unreleased]
 
 ### Added
+- 手册新增「账号侧设置清单（手动）」：Help improve Claude、2FA、一号一出口、支付地区、会话 token 等 10 项
+- 补 QA：「Help improve Claude」在哪关；澄清 Desktop 训练数据开关 vs 崩溃/分析遥测
+
+
+### Added
 - `docs/handbook.zh-CN.md`：101 手册（全自动 vs 手动对照、新机流程、15 条 QA、术语表）
 - `docs/handbook.md`：英文精简版
 - `docs/README.md`：文档地图；README 与 quickstart 增加入口

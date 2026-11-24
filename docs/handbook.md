@@ -18,7 +18,8 @@ For first-time users. After reading this you will know what it does, what is aut
 | Browser WebRTC / QUIC policies | **automatic** | restart browser |
 | Claude Code telemetry off | **automatic** | writes `~/.claude/settings.json` |
 | Disable IPv6 | **automatic** | prevents v6 bypass |
-| Claude Desktop telemetry off | **not possible** | no public switch |
+| Claude Desktop training-data opt-out | **manual** | Settings → Privacy → turn off "Help improve Claude" |
+| Claude Desktop crash/analytics telemetry | **not exposed** in consumer builds | only enterprise managed config (`disableEssentialTelemetry` / `disableNonessentialTelemetry`) |
 | Install proxy client | **manual** | |
 | Import subscription, pick node | **manual** | |
 | Enable System Proxy + TUN | **manual** | |
@@ -73,9 +74,22 @@ Full details (in Chinese): [handbook.zh-CN.md](handbook.zh-CN.md).
 
 The breaker and probes (`ip`, `risk`, `fingerprint`, `residue`) are client-agnostic — they only need a local proxy port (`PROXY_PORT`, default 7890) plus TUN. The `egress` policy-group audit needs a Clash-family YAML profile (FlClash, Clash Verge Rev, ClashX, mihomo, Stash); sing-box / Surge / V2Ray configs are not parsed. Profile discovery auto-scans common locations; override with `--profile` or `PROFILE_DIR`. `ipp egress --fix` validates that `AI_GROUP` exists in the subscription before writing, and lists available group names otherwise.
 
+## Account-side checklist (manual)
+
+1. Turn off **Help improve Claude** (Settings → Privacy) so chats are not used for training.
+2. Enable 2FA.
+3. One account, one fixed egress — do not hop countries daily.
+4. No shared accounts.
+5. Billing region consistent with the account region; no gift-card arbitrage.
+6. Never hand session tokens/cookies to third-party panels.
+7. Separate browser profiles per account.
+8. Keep the signup email/phone stable.
+9. Keep request volume human.
+10. No unknown "Claude enhancer" extensions.
+
 ## Boundaries
 
-Account hygiene (passwords, 2FA, sharing, billing region), request behaviour, content, proxy node quality, and Claude Desktop telemetry are out of scope. The tool covers the network egress surface only.
+Account hygiene (passwords, 2FA, sharing, billing region), request behaviour, content, proxy node quality, and Claude Desktop telemetry are out of scope — the account-side checklist above lists the manual steps. The tool covers the network egress surface only.
 
 ## Glossary
 
