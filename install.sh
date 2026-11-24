@@ -103,11 +103,17 @@ else
   ok "保险待命"
 fi
 
-LOCAL_BIN="$HOME/.local/bin"
-mkdir -p "$LOCAL_BIN"
-for cmd in ipp ipplz ip-please airlock; do
-  ln -sf "$HERE/bin/ip-please" "$LOCAL_BIN/$cmd"
-done
+# Homebrew 安装的副本已有 bin 包装器，不再往 ~/.local/bin 塞软链，避免同名命令互相遮蔽
+case "$HERE" in
+  */Cellar/*|*/homebrew/*|*/opt/*)
+    ok "检测到 Homebrew 安装路径，跳过 CLI 软链" ;;
+  *)
+    LOCAL_BIN="$HOME/.local/bin"
+    mkdir -p "$LOCAL_BIN"
+    for cmd in ipp ipplz ip-please airlock; do
+      ln -sf "$HERE/bin/ip-please" "$LOCAL_BIN/$cmd"
+    done ;;
+esac
 if command -v ip-please >/dev/null 2>&1; then
   ok "命令已可用: $(command -v ip-please)"
 else
