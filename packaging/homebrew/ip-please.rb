@@ -2,12 +2,12 @@
 #   brew install zahT3/tap/ip-please
 #
 # sha256 需要用发布产物的校验值替换：
-#   curl -sL https://github.com/zahT3/ip-please/archive/refs/tags/v0.5.8.tar.gz | shasum -a 256
+#   curl -sL https://github.com/zahT3/ip-please/archive/refs/tags/v0.6.0.tar.gz | shasum -a 256
 class IpPlease < Formula
   desc "Egress-identity auditor and fail-closed circuit breaker for AI accounts (macOS)"
   homepage "https://github.com/zahT3/ip-please"
-  url "https://github.com/zahT3/ip-please/archive/refs/tags/v0.5.8.tar.gz"
-  sha256 "b2f1863c5dc000214154a483e2a4974edd7e084510514b96c2f942ab62658e5f"
+  url "https://github.com/zahT3/ip-please/archive/refs/tags/v0.6.0.tar.gz"
+  sha256 "d4c1f85ca3d08dbceb8fb38e45e7cc60c187fcfc46d872df129460d592c8c124"
   license "MIT"
 
   depends_on :macos
