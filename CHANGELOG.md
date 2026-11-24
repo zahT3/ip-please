@@ -41,6 +41,12 @@
 ## [Unreleased]
 
 ### Added
+- `scripts/build_pkg.sh`：构建未签名 `.pkg`（装到 `/usr/local/ip-please`，postinstall 自动装系统侧组件）
+- Release workflow 增加 macOS pkg 构建与上传
+- `.pkg` 安装方式与 Gatekeeper 放行说明（中英）
+
+
+### Added
 - `scripts/quickstart.sh`：一键安装（检查环境 → 装 brew 包 → 装系统侧组件 → 体检），支持 `--dry-run`
 - `docs/quickstart.zh-CN.md` / `docs/quickstart.md`：面向不熟悉命令行的用户的分步教程与常见问题
 - README 顶部加入复制粘贴安装入口

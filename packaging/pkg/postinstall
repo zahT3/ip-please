@@ -1,0 +1,26 @@
+#!/bin/bash
+# .pkg 安装后脚本（以 root 运行）：装系统侧熔断器与浏览器策略，不碰用户目录。
+set -u
+
+PAYLOAD=/usr/local/ip-please
+LOG=/var/log/ip-please-pkg.log
+exec >>"$LOG" 2>&1
+echo "=== postinstall $(date) ==="
+
+. "$PAYLOAD/lib/install_guard.sh" || exit 0
+if install_guard "$PAYLOAD" 7890; then
+  echo "guard installed"
+else
+  echo "guard install failed (pkg still installed CLI)"
+fi
+
+if [ -f "$PAYLOAD/lib/browser-policies.sh" ]; then
+  BROWSER_BUNDLE_IDS="com.google.Chrome com.brave.Browser" \
+    bash "$PAYLOAD/lib/browser-policies.sh" install || echo "browser policies failed"
+fi
+
+# 给 console 用户一条可执行的下一步提示（写入桌面便签不现实，落在系统日志即可）
+CU=$(/usr/bin/stat -f %Su /dev/console 2>/dev/null)
+echo "console user: ${CU:-unknown}"
+echo "ask user to run: ipp doctor"
+exit 0

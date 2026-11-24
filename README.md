@@ -14,6 +14,8 @@
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/zahT3/ip-please/main/scripts/quickstart.sh)"
 ```
 
+Or download the unsigned `.pkg` from [Releases](https://github.com/zahT3/ip-please/releases/latest) (Apple Silicon; needs one manual Gatekeeper approval).
+
 ![IP, please — a border checkpoint for your outbound traffic](docs/poster.svg)
 
 Every outbound connection crosses a border. `ip-please` runs the checkpoint on your Mac: each connection must present its papers (ASN, geo, fraud score, reverse DNS), the known smuggling routes get patted down (WebRTC, QUIC, plaintext DNS, unconverged policy groups), and when the proxy path dies the hatch is sealed instead of letting your real address walk out.

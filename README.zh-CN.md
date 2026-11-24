@@ -14,6 +14,8 @@
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/zahT3/ip-please/main/scripts/quickstart.sh)"
 ```
 
+或者从 [Releases](https://github.com/zahT3/ip-please/releases/latest) 下载未签名的 `.pkg` 双击安装（Apple Silicon；首次需在系统设置里手动放行）。
+
 ![IP, please —— 给你的出站流量设一道边检](docs/poster.svg)
 
 每次出网都是一次过关。`ip-please` 在 Mac 上设下这道关口：核验每个连接的出口身份（ASN、geo、欺诈评分、反向域名），排查四类已知泄漏路径（WebRTC、QUIC、明文 DNS、未完成出口收敛的策略组）。一旦代理链路中断，出站熔断器立即触发 fail-closed 阻断，防止真实地址直连泄漏。

@@ -26,3 +26,17 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
+
+  pkg:
+    name: build unsigned pkg
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: 构建 .pkg
+        run: bash scripts/build_pkg.sh
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.pkg
