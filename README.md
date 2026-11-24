@@ -15,7 +15,7 @@ The tool is decoupled from any provider: it only audits and controls how *this m
 
 > The repository is one letter off the door-ID games: **IP, please**. The metaphor underneath is an airlock — seal the hatch when the pressure drops.
 
-![ip-please doctor](docs/demo.svg)
+![ipp doctor](docs/demo.svg)
 
 ## Threat model
 
@@ -70,15 +70,18 @@ brew install zahT3/tap/ip-please
 
 | Command | Semantics |
 |---|---|
-| `ip-please doctor` | Full audit; non-zero exit code when any check drifts |
-| `ip-please ip` | Exit identity: ASN, reverse DNS, fraud score, residential/datacenter, geo |
-| `ip-please dns` | Resolution path assertion: `claude.ai` and friends must land in the fake-ip range |
-| `ip-please egress [--fix]` | Egress convergence: do all AI domains hit one policy group; `--fix` folds stray domains in |
-| `ip-please fingerprint` | Environment consistency: timezone / language / region vs exit geo |
-| `ip-please risk` | Risk surface: detect a Cloudflare challenge |
-| `ip-please guard <sub>` | Circuit breaker: `status` / `install` / `pause` / `resume` / `remove` / `test` / `test-soft` |
-| `ip-please panic` | Emergency release of the breaker |
-| `ip-please residue [--purge]` | Local residue scan / cleanup (before switching accounts) |
+| `ipp doctor` | Full audit; non-zero exit code when any check drifts |
+| `ipp ip` | Exit identity: ASN, reverse DNS, fraud score, residential/datacenter, geo |
+| `ipp dns` | Resolution path assertion: `claude.ai` and friends must land in the fake-ip range |
+| `ipp egress [--fix]` | Egress convergence: do all AI domains hit one policy group; `--fix` folds stray domains in |
+| `ipp fingerprint` | Environment consistency: timezone / language / region vs exit geo |
+| `ipp risk` | Risk surface: detect a Cloudflare challenge |
+| `ipp guard <sub>` | Circuit breaker: `status` / `install` / `pause` / `resume` / `remove` / `test` / `test-soft` |
+| `ipp panic` | Emergency release of the breaker |
+| `ipp residue [--purge]` | Local residue scan / cleanup (before switching accounts) |
+
+
+Short forms: `ipp` (primary), plus `ipplz`, `ip-please`, `airlock` aliases. The repository stays `ip-please`.
 
 Global flags: `--profile <path>` to pick a subscription file; `--plain` / `--stack` / `--badge` / `--unicode` for output style.
 
@@ -110,7 +113,7 @@ After loading rules the breaker verifies the rule count via `pfctl -a ip-please-
 
 The breaker only blocks; it does not start your proxy client. Set `RELAUNCH_APP="FlClash"` to have it try once per block episode.
 
-**Operating rule: `ip-please guard pause` → change → verify → `ip-please guard resume`.** Enforced by tests.
+**Operating rule: `ipp guard pause` → change → verify → `ipp guard resume`.** Enforced by tests.
 
 ## Why interval, not a resident daemon
 

@@ -15,7 +15,7 @@
 
 > 仓库名是把「ID, please」改一个字母：**IP, please**。底下的隐喻还是气闸——失压时锁死舱门。
 
-![ip-please doctor](docs/demo.svg)
+![ipp doctor](docs/demo.svg)
 
 ## 威胁模型
 
@@ -70,15 +70,18 @@ brew install zahT3/tap/ip-please
 
 | 命令 | 语义 |
 |---|---|
-| `ip-please doctor` | 全量状态审计；任一检查项偏离预期即返回非零退出码 |
-| `ip-please ip` | 出口身份核验：ASN、reverse DNS、欺诈评分、住宅/机房属性、geo |
-| `ip-please dns` | 解析路径断言：验证 `claude.ai` 等域名解析结果落于 fake-ip 网段 |
-| `ip-please egress [--fix]` | 出口收敛：审计目标 AI 域名是否命中单一策略组；`--fix` 自动归并旁路域名 |
-| `ip-please fingerprint` | 本机环境一致性：校验时区、语言、地区设置与出口 geo 是否对齐 |
-| `ip-please risk` | 风控探测：检测目标站点是否返回 Cloudflare challenge |
-| `ip-please guard <sub>` | 出站熔断器控制：`status` / `install` / `pause` / `resume` / `remove` / `test` / `test-soft` |
-| `ip-please panic` | 应急解除熔断（网络被阻断时使用） |
-| `ip-please residue [--purge]` | 本地残留扫描与清理（切换账号前执行） |
+| `ipp doctor` | 全量状态审计；任一检查项偏离预期即返回非零退出码 |
+| `ipp ip` | 出口身份核验：ASN、reverse DNS、欺诈评分、住宅/机房属性、geo |
+| `ipp dns` | 解析路径断言：验证 `claude.ai` 等域名解析结果落于 fake-ip 网段 |
+| `ipp egress [--fix]` | 出口收敛：审计目标 AI 域名是否命中单一策略组；`--fix` 自动归并旁路域名 |
+| `ipp fingerprint` | 本机环境一致性：校验时区、语言、地区设置与出口 geo 是否对齐 |
+| `ipp risk` | 风控探测：检测目标站点是否返回 Cloudflare challenge |
+| `ipp guard <sub>` | 出站熔断器控制：`status` / `install` / `pause` / `resume` / `remove` / `test` / `test-soft` |
+| `ipp panic` | 应急解除熔断（网络被阻断时使用） |
+| `ipp residue [--purge]` | 本地残留扫描与清理（切换账号前执行） |
+
+
+短命令：`ipp`（主用），另有 `ipplz` / `ip-please` / `airlock` 别名；仓库名保持 `ip-please`。
 
 全局参数：`--profile <path>` 指定订阅文件；`--plain` / `--stack` / `--badge` / `--unicode` 切换输出格式。
 
@@ -110,7 +113,7 @@ brew install zahT3/tap/ip-please
 
 熔断器只阻断、不启动客户端；需要它在阻断时尝试拉起代理，配 `RELAUNCH_APP="FlClash"`（默认关闭，每次阻断仅尝试一次）。
 
-**运维规程：`ip-please guard pause` → 执行变更 → 状态验证 → `ip-please guard resume`。** 该时序受自动化测试约束。
+**运维规程：`ipp guard pause` → 执行变更 → 状态验证 → `ipp guard resume`。** 该时序受自动化测试约束。
 
 ## 为什么是定时巡检而不是常驻进程
 

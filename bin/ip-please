@@ -1,8 +1,8 @@
 #!/bin/bash
-# ip-please —— 出口身份审计与防泄漏熔断 CLI（macOS）
+# ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.5.0"
+VERSION="0.5.1"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -420,7 +420,7 @@ cmd_doctor() {
 
 usage() {
   cat <<'EOF'
-ip-please —— 出口身份审计与防泄漏熔断 CLI（macOS）
+ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 
   ip-please doctor [--pre]       全量体检（--pre 跳过熔断状态检查）
   ip-please ip                   出口身份：ASN / 反向域名 / 欺诈分 / geo
@@ -447,6 +447,6 @@ case "${1:-help}" in
   guard) shift; cmd_guard "${1:-status}" ;;
   panic) cmd_panic ;;
   residue) shift; cmd_residue "${1:-scan}" ;;
-  version|-v|--version) printf 'ip-please %s\n' "$VERSION" ;;
+  version|-v|--version) printf 'ipp %s (ip-please)\n' "$VERSION" ;;
   *) usage ;;
 esac

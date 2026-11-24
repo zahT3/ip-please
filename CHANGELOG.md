@@ -10,6 +10,11 @@
 - 内部标识随之迁移：`/etc/ip-please`、`local.ip-please.guard`、`/usr/local/bin/ip-please-guard`、`~/.ip-please-pause`、`IP_PLEASE_*` 环境变量
 - 安装器支持从 airlock / gecko / claude-guard 三代旧安装平滑迁移
 
+## [0.5.1] - 2026-11-25
+
+### Added
+- 短命令 `ipp`（主用），并安装 `ipplz` / `ip-please` / `airlock` 别名；仓库名保持 `ip-please`
+
 ## [Unreleased]
 
 ### Added

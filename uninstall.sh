@@ -25,7 +25,7 @@ python3 "$HERE/lib/claude_env.py" remove >/dev/null 2>&1 || true
 
 say "清理状态文件"
 sudo rm -rf /etc/ip-please /var/run/ip-please-guard.* /var/log/ip-please-guard.err
-rm -f "$HOME/.ip-please-pause" "$HOME/.local/bin/ip-please"
+rm -f "$HOME/.ip-please-pause" "$HOME/.local/bin/ip-please" "$HOME/.local/bin/ipp" "$HOME/.local/bin/ipplz" "$HOME/.local/bin/airlock"
 
 ok "卸载完成"
 printf '恢复 IPv6: networksetup -setv6automatic Wi-Fi\n'

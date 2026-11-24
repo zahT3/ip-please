@@ -7,7 +7,7 @@ labels: bug
 ## 环境
 
 - macOS 版本（`sw_vers -productVersion`）：
-- ip-please 版本（`ip-please version`）：
+- ip-please 版本（`ipp version`）：
 - 代理客户端与版本：
 
 ## 现象
@@ -27,7 +27,7 @@ labels: bug
 ## 诊断输出
 
 ```
-ip-please doctor
+ipp doctor
 ```
 
 <!-- 请先脱敏：出口 IP 可保留网段、去掉账号信息 -->

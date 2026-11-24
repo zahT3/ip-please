@@ -13,7 +13,7 @@ make check      # shellcheck + python/bash 语法 + 22 条回归断言（提交�
 make test       # 仅回归测试
 make lint       # 仅语法与静态检查
 bash tests/guard_state_test.sh   # 跑单个测试文件
-ip-please doctor  # 本机真实体检（会发起网络请求）
+ipp doctor  # 本机真实体检（会发起网络请求）
 ```
 
 ## 硬约束

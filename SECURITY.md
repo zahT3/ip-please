@@ -2,7 +2,7 @@
 
 ## 报告漏洞
 
-请不要开公开 issue。通过 GitHub Security Advisory（仓库 Security 标签页 → Report a vulnerability）私下报告，或发邮件给维护者。请附：复现步骤、影响范围、`ip-please doctor` 输出（脱敏后）。
+请不要开公开 issue。通过 GitHub Security Advisory（仓库 Security 标签页 → Report a vulnerability）私下报告，或发邮件给维护者。请附：复现步骤、影响范围、`ipp doctor` 输出（脱敏后）。
 
 48 小时内确认收到，7 天内给出处理计划。
 

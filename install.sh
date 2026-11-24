@@ -105,8 +105,9 @@ fi
 
 LOCAL_BIN="$HOME/.local/bin"
 mkdir -p "$LOCAL_BIN"
-ln -sf "$HERE/bin/ip-please" "$LOCAL_BIN/ip-please"
-ln -sf "$HERE/bin/ip-please" "$LOCAL_BIN/airlock"   # 旧命令名兼容别名
+for cmd in ipp ipplz ip-please airlock; do
+  ln -sf "$HERE/bin/ip-please" "$LOCAL_BIN/$cmd"
+done
 if command -v ip-please >/dev/null 2>&1; then
   ok "命令已可用: $(command -v ip-please)"
 else
