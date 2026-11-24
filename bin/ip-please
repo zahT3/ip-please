@@ -388,7 +388,7 @@ cmd_doctor() {
       printf '=== ip-please doctor v%s   %s ===\n' "$VERSION" "$(date '+%F %H:%M')" ;;
     *)
       printf '%s╭──────────────────────────────────────────────────────╮%s\n' "$C_DIM" "$C_N"
-      printf '   ip-please doctor v%s   %s\n' "$VERSION" "$(date '+%F %H:%M')"
+      printf '   ipp doctor v%s   %s\n' "$VERSION" "$(date '+%F %H:%M')"
       printf '%s╰──────────────────────────────────────────────────────╯%s\n' "$C_DIM" "$C_N" ;;
   esac
 
@@ -422,15 +422,15 @@ usage() {
   cat <<'EOF'
 ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 
-  ip-please doctor [--pre]       全量体检（--pre 跳过熔断状态检查）
-  ip-please ip                   出口身份：ASN / 反向域名 / 欺诈分 / geo
-  ip-please dns                  解析面：fake-ip 断言
-  ip-please egress [--fix]       出口收敛：AI 域名 → 单一策略组；--fix 收拢旁路域名
-  ip-please fingerprint          环境对齐：时区 / 语言 / 地理
-  ip-please risk                 风控面：Cloudflare challenge 探测
-  ip-please guard <sub>          出站熔断器: status|install|pause|resume|remove|test
-  ip-please panic                应急解除熔断
-  ip-please residue [--purge]    本地痕迹扫描 / 清理
+  ipp doctor [--pre]       全量体检（--pre 跳过熔断状态检查）
+  ipp ip                   出口身份：ASN / 反向域名 / 欺诈分 / geo
+  ipp dns                  解析面：fake-ip 断言
+  ipp egress [--fix]       出口收敛：AI 域名 → 单一策略组；--fix 收拢旁路域名
+  ipp fingerprint          环境对齐：时区 / 语言 / 地理
+  ipp risk                 风控面：Cloudflare challenge 探测
+  ipp guard <sub>          出站熔断器: status|install|pause|resume|remove|test
+  ipp panic                应急解除熔断
+  ipp residue [--purge]    本地痕迹扫描 / 清理
 
   全局: --plain | --stack | --badge | --unicode   输出风格
         --profile <path>                         指定订阅 profile
