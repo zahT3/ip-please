@@ -261,7 +261,31 @@ rm -f "${TMPDIR:-/tmp}/ip-please-exit-$(id -u).cache"
 ipp ip
 ```
 
-### Q19：报错但我不确定该发什么给人看
+### Q19：FlClash 升级后，自定义规则没了 / 脚本不生效
+
+FlClash 升级或订阅更新会**重写 profile 文件**，直接改 profile 的自定义规则会丢。正确做法是把自定义规则放进「脚本（Scripts）」里，并确保脚本被选中。
+
+排查三步：
+
+```bash
+# 1. 当前订阅绑定的是哪个 profile、是否绑了脚本
+sqlite3 "$HOME/Library/Application Support/com.follow.clash/database.sqlite" \
+  'select id,label,script_id from profiles;'
+
+# 2. 运行时配置里有没有你的自定义规则（以 ToDesk 为例）
+grep -c 'ToDesk' "$HOME/Library/Application Support/com.follow.clash/config.yaml"
+
+# 3. 脚本文件是否还在
+ls "$HOME/Library/Application Support/com.follow.clash/scripts/"
+```
+
+`script_id` 为空 = 脚本没绑定；运行时配置里搜不到 = 没生效（`respect-rules: false` 也是脚本未应用的典型迹象）。
+
+修复：FlClash → 配置（Profiles）→ 选中订阅 → **脚本（Scripts）** → 选回 `Tailscale Bypass` → 保存并重载，再用上面第 2 步确认。
+
+> `ip-please` 0.6.1 起会从 FlClash 数据库读取**当前活动 profile**，不再按文件修改时间猜，避免 `--fix` 改到没在用的那份。
+
+### Q20：报错但我不确定该发什么给人看
 
 跑：
 

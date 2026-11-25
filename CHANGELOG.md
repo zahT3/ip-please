@@ -80,6 +80,12 @@
 ### Fixed
 - 切节点后 `ipp ip` 结果不变（缓存 + ipinfo 429 导致无法刷新）
 
+## [0.6.1] - 2026-11-25
+
+### Fixed
+- 订阅文件发现逻辑：优先读取 FlClash 数据库里的当前 profile id，避免按 mtime 选中未使用的旧文件（导致 `--fix` 改错文件）
+- 手册新增 QA：FlClash 升级后自定义脚本失效的排查与恢复
+
 ## [Unreleased]
 
 ### Added

@@ -2,7 +2,7 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.6.0"
+VERSION="0.6.1"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -298,12 +298,34 @@ cmd_risk() {
 }
 
 # ---------- 出口收敛 ----------
+_flclash_active_profile() {
+  # 从 FlClash 数据库读当前 profile id，避免 mtime 猜错文件
+  local db="$HOME/Library/Application Support/com.follow.clash/database.sqlite"
+  [ -f "$db" ] || return 1
+  python3 - "$db" <<'PYEOF' 2>/dev/null
+import sqlite3, sys
+try:
+    c = sqlite3.connect("file:%s?mode=ro" % sys.argv[1], uri=True)
+    ids = [r[0] for r in c.execute("select id from profiles")]
+    print(ids[0] if len(ids) == 1 else "")
+except Exception:
+    pass
+PYEOF
+}
+
 resolve_profile() {
   local p="${PROFILE_PATH:-}" d
   p="${p/#\~/$HOME}"
   if [ -n "$p" ] && [ -f "$p" ]; then printf '%s\n' "$p"; return 0; fi
+  if [ -z "$p" ]; then
+    local pid
+    pid=$(_flclash_active_profile)
+    if [ -n "${pid:-}" ] && [ -f "$HOME/Library/Application Support/com.follow.clash/profiles/${pid}.yaml" ]; then
+      p="$HOME/Library/Application Support/com.follow.clash/profiles/${pid}.yaml"
+    fi
+  fi
   d="${PROFILE_DIR:-}"
-  if [ -n "$d" ]; then
+  if [ -z "$p" ] && [ -n "$d" ]; then
     p=$(ls -t "$d"/*.yaml "$d"/*.yml 2>/dev/null | head -1)
   fi
   if [ -z "$p" ]; then
