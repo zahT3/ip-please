@@ -2,6 +2,15 @@
 # 安装/校验断网保险。被 install.sh 和 `ip-please guard install` 共用。
 # 调用方必须已经持有 sudo 授权，并且已经创建了豁免文件。
 
+_guard_conf() {
+  # 注意：调用方开了 pipefail，这里必须始终返回 0
+  printf 'GUARD_ANCHOR=%s\nGUARD_PROXY_PORT=%s\n' "${1:-}" "${2:-}"
+  if [ -n "${3:-}" ]; then
+    printf 'GUARD_RELAUNCH_APP=%s\n' "$3"
+  fi
+  return 0
+}
+
 install_guard() {
   local here="$1" proxy_port="$2" anchor="${3:-ip-please-guard}" relaunch="${4:-}" plist
   plist="/Library/LaunchDaemons/local.ip-please.guard.plist"
@@ -9,10 +18,7 @@ install_guard() {
   sudo install -d -m 755 /etc/ip-please || return 1
   sudo install -m 755 "$here/lib/guard.sh" /usr/local/bin/ip-please-guard || return 1
 
-  {
-    printf 'GUARD_ANCHOR=%s\nGUARD_PROXY_PORT=%s\n' "$anchor" "$proxy_port"
-    [ -n "$relaunch" ] && printf 'GUARD_RELAUNCH_APP=%s\n' "$relaunch"
-  } | sudo tee /etc/ip-please/guard.conf >/dev/null || return 1
+  _guard_conf "$anchor" "$proxy_port" "$relaunch" | sudo tee /etc/ip-please/guard.conf >/dev/null || return 1
   sudo chmod 644 /etc/ip-please/guard.conf
 
   sudo install -m 644 "$here/lib/guard.plist" "$plist" || return 1

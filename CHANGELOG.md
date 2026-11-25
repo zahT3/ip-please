@@ -102,6 +102,15 @@
 - `GUARD_TUN_PATTERN` 可配置 TUN 网段；`GUARD_GRACE` 仍可调整宽限
 - 手册新增 QA：宽限期到底会不会泄漏真实 IP
 
+## [0.6.4] - 2026-11-25
+
+### Fixed
+- 安装中止：`install_guard` 生成 `guard.conf` 时，`RELAUNCH_APP` 为空会在 `pipefail` 下让管道返回 1，导致 install.sh 直接退出（brew 安装路径最容易触发）
+- `install.sh` 现在也会读取 `~/.config/ip-please/config.sh`，brew 安装同样能拿到 `RELAUNCH_APP` 等偏好
+
+### Added
+- `tests/install_conf_test.sh`：guard.conf 生成的空/非空 relaunch 回归
+
 ## [Unreleased]
 
 ### Added

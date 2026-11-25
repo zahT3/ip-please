@@ -4,7 +4,9 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/config.example.sh"
-[ -f "$HERE/config.sh" ] && . "$HERE/config.sh"
+# 用户级配置（brew 安装时不会有 libexec/config.sh）
+if [ -f "$HOME/.config/ip-please/config.sh" ]; then . "$HOME/.config/ip-please/config.sh"; fi
+if [ -f "$HERE/config.sh" ]; then . "$HERE/config.sh"; fi
 
 PAUSE="$HOME/.ip-please-pause"
 
