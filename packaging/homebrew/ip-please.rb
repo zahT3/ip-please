@@ -7,7 +7,7 @@ class IpPlease < Formula
   desc "Egress-identity auditor and fail-closed circuit breaker for AI accounts (macOS)"
   homepage "https://github.com/zahT3/ip-please"
   url "https://github.com/zahT3/ip-please/archive/refs/tags/v0.6.3.tar.gz"
-  sha256 "ba95bfb4ee786eaf5be055daa5b04ab8e01923df1e56016cadf30b0b17855e6f"
+  sha256 "c5d06ea7e4f2ef633d028c5c12d3cf4729ce6d8124378b83ece82c733da45402"
   license "MIT"
 
   depends_on :macos
