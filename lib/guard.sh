@@ -18,6 +18,8 @@ RELAUNCH_APP="${GUARD_RELAUNCH_APP:-}"
 PF_CONF="${IP_PLEASE_PF_CONF:-/etc/pf.conf}"
 PFCTL="${IP_PLEASE_PFCTL:-/sbin/pfctl}"
 NC="${IP_PLEASE_NC:-/usr/bin/nc}"
+IFCONFIG="${IP_PLEASE_IFCONFIG:-/sbin/ifconfig}"
+TUN_PATTERN="${GUARD_TUN_PATTERN:-198.18.}"
 RUNDIR="${IP_PLEASE_RUN:-/var/run}"
 STATE="$RUNDIR/$ANCHOR.state"
 RELAUNCH_MARK="$RUNDIR/$ANCHOR.relaunch"
@@ -38,6 +40,11 @@ paused() {
   [ -n "${IP_PLEASE_HOME:-}" ] && { [ -e "$IP_PLEASE_HOME/.ip-please-pause" ] && return 0; }
   h=$(console_home) || return 1
   [ -n "$h" ] && [ -e "$h/.ip-please-pause" ]
+}
+
+tun_up() {
+  [ -z "$TUN_PATTERN" ] && return 0
+  "$IFCONFIG" 2>/dev/null | /usr/bin/grep -q "inet ${TUN_PATTERN}"
 }
 
 rules_count() { $PFCTL -a "$ANCHOR" -sr 2>/dev/null | /usr/bin/grep -c '^block'; }
@@ -78,6 +85,11 @@ fi
 [ -f "$STATE" ] || { printf '%s\n' "$now" > "$STATE"; exit 0; }
 
 last=$(/bin/cat "$STATE" 2>/dev/null || echo 0)
+if ! tun_up; then
+  # TUN 已消失 = 流量可能直接走物理网卡，宽限期不再安全，立即阻断
+  log "tun interface missing -> skip grace"
+  last=0
+fi
 [ $((now-last)) -lt "$GRACE" ] && exit 0
 
 if [ -f "$OPEN" ]; then
