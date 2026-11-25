@@ -53,8 +53,12 @@ _pause_active() {
 
 paused() {
   local h
+  # 测试/沙箱：IP_PLEASE_HOME 显式指定时只看它，避免读到真实用户的豁免文件
+  if [ -n "${IP_PLEASE_HOME:-}" ]; then
+    _pause_active "$IP_PLEASE_HOME/.ip-please-pause"
+    return
+  fi
   _pause_active "/etc/ip-please/pause" && return 0
-  [ -n "${IP_PLEASE_HOME:-}" ] && { _pause_active "$IP_PLEASE_HOME/.ip-please-pause" && return 0; }
   h=$(console_home) || return 1
   [ -n "$h" ] && _pause_active "$h/.ip-please-pause"
 }

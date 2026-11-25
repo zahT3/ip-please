@@ -29,5 +29,11 @@ run 0 0 1; [ $? -ne 0 ] && echo "  PASS  有代理连接时返回非 0" || { ech
 OUT=$(HOME="$TMP/home" PATH="$TMP/bin:$PATH" TEST_DESKTOP=1 "$HERE/bin/ip-please" activity --json 2>/dev/null)
 printf '%s' "$OUT" | grep -q '"busy":true' && echo "  PASS  JSON busy=true" || { echo "  FAIL  JSON: $OUT"; fail=$((fail+1)); }
 
+echo "最近写入（弱信号）"
+mkdir -p "$TMP/home/.claude/projects/p"
+: > "$TMP/home/.claude/projects/p/a.jsonl"
+HOME="$TMP/home" PATH="$TMP/bin:$PATH" "$HERE/bin/ip-please" --plain activity >/dev/null 2>&1 && echo "  PASS  仅历史写入时默认放行" || { echo "  FAIL  仅历史写入被误判"; fail=$((fail+1)); }
+HOME="$TMP/home" PATH="$TMP/bin:$PATH" "$HERE/bin/ip-please" --plain activity --strict >/dev/null 2>&1; [ $? -ne 0 ] && echo "  PASS  --strict 时算活动" || { echo "  FAIL  strict 未生效"; fail=$((fail+1)); }
+
 [ "$fail" -eq 0 ] && { echo "全部通过"; exit 0; }
 echo "$fail 项失败"; exit 1

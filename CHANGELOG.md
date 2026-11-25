@@ -130,6 +130,11 @@
 - AGENTS.md / CLAUDE.md 写入「网络中断类操作的前置检查（强制）」流程
 - 测试：`tests/activity_test.sh`、guard 状态机新增暂停过期用例
 
+## [0.6.7] - 2026-11-26
+
+### Fixed
+- `ipp activity` 误报：仅「5 分钟内有会话写入」不再判定为忙碌，只有 Claude 进程或活动代理连接才拦截；`--strict` 可恢复严格判定
+
 ## [Unreleased]
 
 ### Added

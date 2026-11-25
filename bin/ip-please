@@ -2,7 +2,7 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.6.6"
+VERSION="0.6.7"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -619,14 +619,23 @@ _pause_write() {
 }
 
 cmd_activity() {
-  local json=0
-  [ "${1:-}" = "--json" ] && json=1
-  local desktop=0 cli=0 conns=0 recent="" busy=0
+  local json=0 strict=0
+  for a in "$@"; do
+    case "$a" in
+      --json) json=1 ;;
+      --strict) strict=1 ;;
+    esac
+  done
+  local desktop=0 cli=0 conns=0 recent="" strong=0 busy=0
   _claude_desktop_running && desktop=1
   _claude_cli_running && cli=1
   conns=$(_claude_proxy_conns)
   recent=$(_recent_claude_write 2>/dev/null || true)
-  { [ "$desktop" = 1 ] || [ "$cli" = 1 ] || [ "${conns:-0}" -gt 0 ] || [ -n "$recent" ]; } && busy=1
+
+  { [ "$desktop" = 1 ] || [ "$cli" = 1 ] || [ "${conns:-0}" -gt 0 ]; } && strong=1
+  busy=$strong
+  # 只有 --strict 才把"最近写入"当作活动（默认仅提示）
+  [ "$strict" = 1 ] && [ -n "$recent" ] && busy=1
 
   if [ "$json" = 1 ]; then
     printf '{"busy":%s,"claude_desktop":%s,"claude_cli":%s,"proxy_conns":%s,"recent_write":"%s"}\n' \
@@ -639,9 +648,15 @@ cmd_activity() {
     [ "$desktop" = 1 ] && wrn "Claude Desktop" "运行中" || ok "Claude Desktop" "未运行"
     [ "$cli" = 1 ] && wrn "Claude CLI" "运行中" || ok "Claude CLI" "未运行"
     if [ "${conns:-0}" -gt 0 ]; then wrn "代理连接" "$conns 条 Claude 相关连接"; else ok "代理连接" "无"; fi
-    [ -n "$recent" ] && wrn "最近写入" "$recent" || ok "最近写入" "5 分钟内无"
+    if [ -n "$recent" ]; then
+      wrn "最近写入" "${recent}（仅提示：无活动进程，可按需 --force）"
+    else
+      ok "最近写入" "5 分钟内无"
+    fi
     if [ "$busy" = 1 ]; then
       bad "结论" "有活动：暂停熔断/重启客户端前请先确认"
+    elif [ -n "$recent" ]; then
+      ok "结论" "无活动进程（仅有历史写入），可以安全操作"
     else
       ok "结论" "空闲，可以安全操作"
     fi
