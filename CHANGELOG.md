@@ -111,6 +111,16 @@
 ### Added
 - `tests/install_conf_test.sh`：guard.conf 生成的空/非空 relaunch 回归
 
+## [0.6.5] - 2026-11-26
+
+### Added
+- `ipp recover [--restart]`：FlClash 崩溃后一键恢复（暂停熔断、关闭残留系统代理、DNS 从 198.18.x 恢复 DHCP、刷新缓存、可选重启客户端、等待就绪后恢复熔断）
+- `ipp doctor` 新增「其他 TUN」检测：Tailscale / OpenVPN / WireGuard 同时运行会抢路由
+- `tests/recover_test.sh`：健康/残留/带重启三组回归
+
+### Fixed
+- `ipp recover` 中 CJK 紧跟变量导致的 unbound variable
+
 ## [Unreleased]
 
 ### Added

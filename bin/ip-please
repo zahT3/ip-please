@@ -2,7 +2,7 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.6.4"
+VERSION="0.6.5"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -16,6 +16,16 @@ PLIST="/Library/LaunchDaemons/local.ip-please.guard.plist"
 PAUSE="$HOME/.ip-please-pause"
 ANCHOR="ip-please-guard"
 EXIT_CACHE="${TMPDIR:-/tmp}/ip-please-exit-$(id -u).cache"
+TUN_PATTERN="${GUARD_TUN_PATTERN:-198.18.}"
+NC="${IP_PLEASE_NC:-/usr/bin/nc}"
+IFCONFIG="${IP_PLEASE_IFCONFIG:-/sbin/ifconfig}"
+NETWORKSETUP="${IP_PLEASE_NETWORKSETUP:-/usr/sbin/networksetup}"
+SCUTIL="${IP_PLEASE_SCUTIL:-/usr/sbin/scutil}"
+DSCACHEUTIL="${IP_PLEASE_DSCACHEUTIL:-/usr/bin/dscacheutil}"
+KILLALL="${IP_PLEASE_KILLALL:-/usr/bin/killall}"
+OSASCRIPT="${IP_PLEASE_OSASCRIPT:-/usr/bin/osascript}"
+OPEN="${IP_PLEASE_OPEN:-/usr/bin/open}"
+SUDO="${IP_PLEASE_SUDO:-sudo}"
 
 C_OK=$'\033[1;32m'; C_BAD=$'\033[1;31m'; C_WARN=$'\033[1;33m'; C_H=$'\033[1;36m'; C_DIM=$'\033[2m'; C_N=$'\033[0m'
 
@@ -549,6 +559,7 @@ _client_checks() {
   local pre="$1" fails=0
   say "链路与熔断器"
   pgrep -qf 'FlClash|Clash Verge|mihomo|sing-box' && ok "代理客户端" "运行中" || { bad "代理客户端" "未运行"; fails=$((fails + 1)); }
+  local _c; _c=$(_vpn_running); [ -n "$_c" ] && wrn "其他 TUN" "${_c}在运行（多 TUN 抢路由）"
   nc -z -G 1 127.0.0.1 "$PROXY_PORT" >/dev/null 2>&1 && ok "代理端口" "$PROXY_PORT" || { bad "代理端口" "未监听"; fails=$((fails + 1)); }
   scutil --proxy | grep -q 'HTTPEnable : 1' && ok "系统代理" "开启" || { bad "系统代理" "未开启"; fails=$((fails + 1)); }
   netstat -rn -f inet | grep -q '^128.0/1.*utun' && ok "TUN" "已接管" || { bad "TUN" "未接管"; fails=$((fails + 1)); }
@@ -559,6 +570,99 @@ _client_checks() {
   fi
   [ -e "$PAUSE" ] && wrn "豁免标记" "存在（保险已暂停）" || ok "豁免标记" "无"
   return $fails
+}
+
+_vpn_running() {
+  local out=""
+  pgrep -qf 'Tailscale.app|tailscaled' && out="${out}Tailscale "
+  pgrep -qf 'openvpn .*\.ovpn' && out="${out}OpenVPN "
+  pgrep -qf 'WireGuard|wg-quick' && out="${out}WireGuard "
+  printf '%s' "$out"
+}
+
+_active_service() {
+  local dev svc
+  dev=$(/sbin/route get default 2>/dev/null | awk '/interface:/{print $2; exit}')
+  [ -z "$dev" ] && dev=en0
+  "$NETWORKSETUP" -listnetworkserviceorder 2>/dev/null | awk -v d="$dev" '
+    /^\([0-9]+\)/ { s=$0; sub(/^\([0-9]+\) /, "", s); next }
+    /Device: / { gsub(/[()]/, "", $2); if ($2 == d) { print s; exit } }'
+}
+
+_tun_up() { "$IFCONFIG" 2>/dev/null | grep -q "inet ${TUN_PATTERN}"; }
+_port_up() { "$NC" -z -G 1 127.0.0.1 "$PROXY_PORT" >/dev/null 2>&1; }
+_sysproxy_on() { "$SCUTIL" --proxy 2>/dev/null | grep -q 'HTTPEnable : 1'; }
+_dns_points_tun() { "$SCUTIL" --dns 2>/dev/null | grep -q 'nameserver\[0\] : 198\.18\.'; }
+
+cmd_recover() {
+  local restart=0 was_paused=0 svc port=0 tun=0
+
+  case "${1:-}" in
+    --restart) restart=1 ;;
+  esac
+
+  say "FlClash 残留恢复"
+  local conflicts
+  conflicts=$(_vpn_running)
+  [ -n "$conflicts" ] && wrn "其他 TUN" "${conflicts}也在运行（多 TUN 抢路由，FlClash 会重启）"
+
+  _port_up && port=1
+  _tun_up && tun=1
+  [ "$port" = 1 ] && ok "代理端口" "$PROXY_PORT 监听中" || wrn "代理端口" "$PROXY_PORT 未监听"
+  [ "$tun" = 1 ] && ok "TUN" "已接管" || wrn "TUN" "未接管"
+
+  if [ "$port" = 1 ] && [ "$tun" = 1 ]; then
+    ok "状态" "已经正常，无需恢复"
+    return 0
+  fi
+
+  [ -e "$PAUSE" ] && was_paused=1
+  touch "$PAUSE"
+  ok "熔断器" "已暂停（避免恢复过程中被阻断）"
+
+  svc=$(_active_service)
+  [ -n "$svc" ] || svc="Wi-Fi"
+
+  if _sysproxy_on; then
+    $SUDO "$NETWORKSETUP" -setwebproxystate "$svc" off >/dev/null 2>&1
+    $SUDO "$NETWORKSETUP" -setsecurewebproxystate "$svc" off >/dev/null 2>&1
+    $SUDO "$NETWORKSETUP" -setsocksfirewallproxystate "$svc" off >/dev/null 2>&1
+    ok "系统代理" "已关闭（${svc}）"
+  fi
+  if _dns_points_tun; then
+    $SUDO "$NETWORKSETUP" -setdnsservers "$svc" Empty >/dev/null 2>&1
+    ok "DNS" "已从 198.18.x 恢复为 DHCP"
+  fi
+  $SUDO "$DSCACHEUTIL" -flushcache >/dev/null 2>&1
+  $SUDO "$KILLALL" -HUP mDNSResponder >/dev/null 2>&1
+  ok "DNS 缓存" "已刷新"
+
+  if [ "$restart" = 1 ]; then
+    say "重启 FlClash"
+    "$OSASCRIPT" -e 'quit app "FlClash"' >/dev/null 2>&1
+    sleep 3
+    "$OPEN" -a FlClash >/dev/null 2>&1
+  fi
+
+  say "等待服务恢复（最多 60 秒）"
+  for _ in $(seq 1 "${IP_PLEASE_RECOVER_TRIES:-30}"); do
+    sleep 2
+    if _port_up && _tun_up; then
+      ok "恢复" "代理端口与 TUN 均已就绪"
+      if [ "$was_paused" = 0 ]; then
+        rm -f "$PAUSE"
+        ok "熔断器" "已恢复武装"
+      else
+        wrn "熔断器" "保持暂停（原来就是暂停状态）"
+      fi
+      return 0
+    fi
+  done
+
+  bad "恢复失败" "代理仍未起来；保持暂停，网络不会被阻断"
+  printf '  下一步: 完全退出 FlClash（⌘Q）后重开，点仪表盘 ▶\n'
+  printf '  冲突检查: %s\n' "${conflicts:-未发现其他 TUN}"
+  return 1
 }
 
 cmd_doctor() {
@@ -630,6 +734,7 @@ case "${1:-help}" in
   guard) shift; cmd_guard "${1:-status}" ;;
   panic) cmd_panic ;;
   residue) shift; cmd_residue "${1:-scan}" ;;
+  recover) shift; cmd_recover "$@" ;;
   version|-v|--version) printf 'ipp %s (ip-please)\n' "$VERSION" ;;
   *) usage ;;
 esac

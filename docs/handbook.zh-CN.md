@@ -110,6 +110,7 @@ ipp guard resume    # 改完再恢复防护
 | `ipp ip` | 只看出画像：住宅还是机房、欺诈分、国家（前提是探针域名已钉进 AI 组，否则测的是默认路由） |
 | `ipp residue` | 换账号前扫描本地残留 |
 | `ipp panic` | 断网急救（见第 5 节第一条） |
+| `ipp recover [--restart]` | FlClash 崩溃后一键恢复：暂停熔断、清 DNS/代理残留、可选重启客户端 |
 | `ipp doctor --redact` | 体检结果脱敏，方便截图发群里 |
 
 ---
@@ -304,7 +305,37 @@ ls "$HOME/Library/Application Support/com.follow.clash/scripts/"
 
 另外 `RELAUNCH_APP` 会在阻断时尝试拉起客户端一次，配合宽限期能覆盖“客户端闪退马上重启”的场景。
 
-### Q21：报错但我不确定该发什么给人看
+### Q21：FlClash 会莫名自己重启，怎么查、怎么防
+
+**先查是不是多 TUN 抢路由**（最常见）：
+
+```bash
+ipp recover        # 会直接列出 Tailscale / OpenVPN / WireGuard 是否也在跑
+```
+
+macOS 上多个 TUN 同时改路由时，FlClash 的 TUN 会被覆盖，核心检测到后重建 TUN / 重启服务。日志特征：
+
+```bash
+log show --last 2h --style compact --predicate 'eventMessage CONTAINS "tun interface missing"' | tail
+```
+
+**预防**：
+
+1. 用 FlClash 时退出其他 VPN（Tailscale、OpenVPN、WireGuard），只留一条隧道
+2. 必须共存时，把对方的网段加进 FlClash 的 TUN 排除（Tailscale 的 `100.64.0.0/10` 已在脚本里）
+3. FlClash 崩溃后**完全退出**（⌘Q，确认 `pgrep -x FlClashCore` 为空）再重开，不要只关窗口
+4. 动 FlClash 前先 `ipp guard pause`，服务确认恢复后再 `ipp guard resume`
+
+**恢复**：
+
+```bash
+ipp recover              # 清理残留并等待 FlClash 自己恢复
+ipp recover --restart    # 顺带退出并重开 FlClash
+```
+
+`ipp recover` 做的事：暂停熔断器 → 关闭指向死端口的系统代理 → DNS 从 `198.18.x` 恢复 DHCP → 刷新 DNS 缓存 →（可选）重启 FlClash → 等待 7890 与 TUN 就绪 → 恢复熔断器。失败时保持暂停，不会把你锁死。
+
+### Q22：报错但我不确定该发什么给人看
 
 跑：
 

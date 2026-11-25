@@ -111,6 +111,7 @@ brew install zahT3/tap/ip-please
 | `ipp risk` | 风控探测：检测目标站点是否返回 Cloudflare challenge |
 | `ipp guard <sub>` | 出站熔断器控制：`status` / `install` / `pause` / `resume` / `remove` / `test` / `test-soft` |
 | `ipp panic` | 应急解除熔断（网络被阻断时使用） |
+| `ipp recover [--restart]` | FlClash 崩溃后的残留恢复：清 DNS/系统代理，可选重启客户端 |
 | `ipp residue [--purge]` | 本地残留扫描与清理（切换账号前执行） |
 
 
