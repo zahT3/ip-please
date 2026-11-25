@@ -31,3 +31,15 @@ ipp doctor  # 本机真实体检（会发起网络请求）
 - 版本号在 `bin/ip-please` 的 `VERSION`；用户可见变化写进 `CHANGELOG.md` 的 `## [Unreleased]`。
 - 提交信息用 conventional commits：`feat:` / `fix:` / `docs:` / `test:` / `chore:`。
 - 文档改动：中文在 `README.zh-CN.md`，英文在 `README.md`；两边的命令与状态机必须一致。
+
+## 网络中断类操作的前置检查（强制）
+
+任何可能中断代理、TUN 或防火墙的操作（暂停熔断、重启 FlClash、改 TUN/DNS、`ipp recover --restart`、`launchctl` 改动）之前：
+
+1. 先运行 `ipp activity`。返回非 0（Claude Desktop / Claude CLI / 代理连接 / 5 分钟内有写入）时，**停止并告知用户**，除非用户明确要求继续。
+2. 暂停熔断必须带时限：`ipp guard pause --for 180`，禁止裸 `pause`（不带 `--force` 时工具也会拒绝）。
+3. 能用热重载就不要重启客户端；必须重启时提前说明，并确认用户没有正在进行的会话。
+4. 操作结束后立刻 `ipp guard resume`，再跑 `ipp guard status` 复核（已加载 + 无豁免）。
+5. 紧急恢复网络用 `ipp panic`，它不受上述门禁限制，但同样会提示 Claude 活动风险。
+
+不要用 `pkill -f FlClashCore` 之类的强杀；崩溃时用 `ipp recover`。

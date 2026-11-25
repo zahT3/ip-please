@@ -121,6 +121,15 @@
 ### Fixed
 - `ipp recover` 中 CJK 紧跟变量导致的 unbound variable
 
+## [0.6.6] - 2026-11-26
+
+### Added
+- `ipp activity`：检测 Claude Desktop / CLI / 代理连接 / 5 分钟内的会话写入，忙时返回非 0
+- `ipp guard pause` 与 `ipp recover --restart` 增加活动门禁：Claude 活动时拒绝执行，需 `--force`
+- `ipp guard pause --for <秒>` 限时暂停：guard.sh 自动清除过期豁免标记并重新武装
+- AGENTS.md / CLAUDE.md 写入「网络中断类操作的前置检查（强制）」流程
+- 测试：`tests/activity_test.sh`、guard 状态机新增暂停过期用例
+
 ## [Unreleased]
 
 ### Added

@@ -2,7 +2,7 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.6.5"
+VERSION="0.6.6"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -431,7 +431,16 @@ PYEOF
 
 # ---------- 出站熔断器 ----------
 cmd_guard() {
-  local sub="${1:-status}"
+  local sub="${1:-status}"; shift || true
+  local force=0 dur=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --force) force=1 ;;
+      --for) dur="${2:-0}"; shift || true ;;
+      *) ;;
+    esac
+    shift || true
+  done
   case "$sub" in
     status)
       if launchctl print system/local.ip-please.guard >/dev/null 2>&1; then ok "熔断器" "已加载"; else bad "熔断器" "未加载"; fi
@@ -449,7 +458,19 @@ cmd_guard() {
       install_guard "$HERE" "$PROXY_PORT" "$ANCHOR" "${RELAUNCH_APP:-}" || { bad "安装" "失败"; return 1; }
       ok "熔断器" "已安装（当前暂停，验证后执行 ip-please guard resume）"
       ;;
-    pause)  touch "$PAUSE";  ok "豁免标记" "已创建，熔断豁免" ;;
+    pause)
+      if [ "$force" = 0 ] && ! cmd_activity --json >/dev/null 2>&1; then
+        bad "拒绝暂停" "检测到 Claude 正在活动（用 --force 强制，或先关闭 Claude）"
+        printf '  查看: ipp activity\n'
+        return 1
+      fi
+      _pause_write "$dur"
+      if [ "$dur" -gt 0 ] 2>/dev/null; then
+        ok "豁免标记" "已创建，${dur} 秒后自动恢复"
+      else
+        ok "豁免标记" "已创建，熔断豁免"
+      fi ;;
+
     resume) rm -f "$PAUSE";  ok "豁免标记" "已移除，熔断恢复生效" ;;
     remove)
       need_sudo || return 1
@@ -572,6 +593,63 @@ _client_checks() {
   return $fails
 }
 
+_claude_desktop_running() {
+  pgrep -f '/Applications/Claude.app/Contents/MacOS/Claude' >/dev/null 2>&1
+}
+_claude_cli_running() {
+  pgrep -f '@anthropic-ai/claude-code|/\.claude/|claude-code' >/dev/null 2>&1
+}
+_claude_proxy_conns() {
+  lsof -nP -iTCP:"$PROXY_PORT" -sTCP:ESTABLISHED 2>/dev/null | grep -icE 'claude' || true
+}
+_recent_claude_write() {
+  local newest
+  newest=$(find "$HOME/.claude/projects" "$HOME/.claude/sessions" -type f -newermt '-5 minutes' 2>/dev/null | head -1)
+  [ -n "$newest" ] && { printf '%s' "$newest"; return 0; }
+  return 1
+}
+
+_pause_write() {
+  local seconds="${1:-0}"
+  if [ "${seconds:-0}" -gt 0 ] 2>/dev/null; then
+    printf 'until=%s\n' $(( $(/bin/date +%s) + seconds )) > "$PAUSE"
+  else
+    : > "$PAUSE"
+  fi
+}
+
+cmd_activity() {
+  local json=0
+  [ "${1:-}" = "--json" ] && json=1
+  local desktop=0 cli=0 conns=0 recent="" busy=0
+  _claude_desktop_running && desktop=1
+  _claude_cli_running && cli=1
+  conns=$(_claude_proxy_conns)
+  recent=$(_recent_claude_write 2>/dev/null || true)
+  { [ "$desktop" = 1 ] || [ "$cli" = 1 ] || [ "${conns:-0}" -gt 0 ] || [ -n "$recent" ]; } && busy=1
+
+  if [ "$json" = 1 ]; then
+    printf '{"busy":%s,"claude_desktop":%s,"claude_cli":%s,"proxy_conns":%s,"recent_write":"%s"}\n' \
+      "$([ "$busy" = 1 ] && echo true || echo false)" \
+      "$([ "$desktop" = 1 ] && echo true || echo false)" \
+      "$([ "$cli" = 1 ] && echo true || echo false)" \
+      "${conns:-0}" "${recent}"
+  else
+    say "Claude 活动检测"
+    [ "$desktop" = 1 ] && wrn "Claude Desktop" "运行中" || ok "Claude Desktop" "未运行"
+    [ "$cli" = 1 ] && wrn "Claude CLI" "运行中" || ok "Claude CLI" "未运行"
+    if [ "${conns:-0}" -gt 0 ]; then wrn "代理连接" "$conns 条 Claude 相关连接"; else ok "代理连接" "无"; fi
+    [ -n "$recent" ] && wrn "最近写入" "$recent" || ok "最近写入" "5 分钟内无"
+    if [ "$busy" = 1 ]; then
+      bad "结论" "有活动：暂停熔断/重启客户端前请先确认"
+    else
+      ok "结论" "空闲，可以安全操作"
+    fi
+  fi
+  [ "$busy" = 1 ] && return 1
+  return 0
+}
+
 _vpn_running() {
   local out=""
   pgrep -qf 'Tailscale.app|tailscaled' && out="${out}Tailscale "
@@ -597,9 +675,18 @@ _dns_points_tun() { "$SCUTIL" --dns 2>/dev/null | grep -q 'nameserver\[0\] : 198
 cmd_recover() {
   local restart=0 was_paused=0 svc port=0 tun=0
 
-  case "${1:-}" in
-    --restart) restart=1 ;;
-  esac
+  local force=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --restart) restart=1 ;;
+      --force) force=1 ;;
+    esac
+    shift || true
+  done
+  if [ "$restart" = 1 ] && [ "$force" = 0 ] && ! cmd_activity --json >/dev/null 2>&1; then
+    bad "拒绝重启" "检测到 Claude 正在活动（用 --force 强制，或先关闭 Claude）"
+    return 1
+  fi
 
   say "FlClash 残留恢复"
   local conflicts
@@ -713,7 +800,7 @@ ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please�
   ipp egress [--fix]       出口收敛：AI 域名 → 单一策略组；--fix 收拢旁路域名
   ipp fingerprint          环境对齐：时区 / 语言 / 地理
   ipp risk                 风控面：Cloudflare challenge 探测
-  ipp guard <sub>          出站熔断器: status|install|pause|resume|remove|test
+  ipp guard <sub>          出站熔断器: status|install|pause [--for 秒] [--force]|resume|remove|test
   ipp panic                应急解除熔断
   ipp residue [--purge]    本地痕迹扫描 / 清理
 
@@ -731,7 +818,8 @@ case "${1:-help}" in
   egress) shift; cmd_egress "${1:-}" ;;
   fingerprint) cmd_fingerprint ;;
   risk) cmd_risk ;;
-  guard) shift; cmd_guard "${1:-status}" ;;
+  guard) shift; cmd_guard "$@" ;;
+  activity) shift; cmd_activity "$@" ;;
   panic) cmd_panic ;;
   residue) shift; cmd_residue "${1:-scan}" ;;
   recover) shift; cmd_recover "$@" ;;

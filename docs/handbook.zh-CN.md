@@ -111,6 +111,8 @@ ipp guard resume    # 改完再恢复防护
 | `ipp residue` | 换账号前扫描本地残留 |
 | `ipp panic` | 断网急救（见第 5 节第一条） |
 | `ipp recover [--restart]` | FlClash 崩溃后一键恢复：暂停熔断、清 DNS/代理残留、可选重启客户端 |
+| `ipp activity` | 检查 Claude 是否在活动（暂停/重启前的强制检查） |
+| `ipp guard pause --for 180` | 带时限的暂停，到点自动恢复，防止忘记 |
 | `ipp doctor --redact` | 体检结果脱敏，方便截图发群里 |
 
 ---
@@ -335,7 +337,17 @@ ipp recover --restart    # 顺带退出并重开 FlClash
 
 `ipp recover` 做的事：暂停熔断器 → 关闭指向死端口的系统代理 → DNS 从 `198.18.x` 恢复 DHCP → 刷新 DNS 缓存 →（可选）重启 FlClash → 等待 7890 与 TUN 就绪 → 恢复熔断器。失败时保持暂停，不会把你锁死。
 
-### Q22：报错但我不确定该发什么给人看
+### Q22：怎么避免"暂停熔断时 Claude 正在跑"这种失误
+
+三个层面一起用：
+
+1. **工具门禁**：`ipp guard pause` 和 `ipp recover --restart` 现在会先跑活动检测；Claude Desktop/CLI 在活动、或代理上有 Claude 连接时直接拒绝，必须加 `--force`。
+2. **带时限的暂停**：`ipp guard pause --for 180`，熔断器到点自动恢复（`guard.sh` 会删除过期的豁免标记），不会因为忘记 resume 而长时间裸奔。
+3. **Agent 规则**：仓库 `AGENTS.md` 里写了强制流程——先 `ipp activity`，busy 就停；暂停必须带 `--for`；操作完必须 `guard status` 复核。
+
+紧急情况仍然用 `ipp panic`（不受门禁限制）。
+
+### Q23：报错但我不确定该发什么给人看
 
 跑：
 

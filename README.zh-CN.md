@@ -112,6 +112,8 @@ brew install zahT3/tap/ip-please
 | `ipp guard <sub>` | 出站熔断器控制：`status` / `install` / `pause` / `resume` / `remove` / `test` / `test-soft` |
 | `ipp panic` | 应急解除熔断（网络被阻断时使用） |
 | `ipp recover [--restart]` | FlClash 崩溃后的残留恢复：清 DNS/系统代理，可选重启客户端 |
+| `ipp activity` | 检测 Claude 是否在活动（暂停/重启前必查） |
+| `ipp guard pause --for 180` | 限时暂停，到点自动恢复 |
 | `ipp residue [--purge]` | 本地残留扫描与清理（切换账号前执行） |
 
 

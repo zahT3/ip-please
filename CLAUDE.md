@@ -7,3 +7,5 @@
 - 安全边界（GRACE / TTL 回退 / 豁免入口 / 锚点校验）不可简化
 - `/etc/pf.conf` 的编辑必须带 `sudo` 且失败要报错
 - `config.sh` 已被 gitignore，不要提交
+
+网络相关操作前先读 `AGENTS.md` 的「网络中断类操作的前置检查（强制）」；核心是 `ipp activity` 门禁 + `ipp guard pause --for N`。

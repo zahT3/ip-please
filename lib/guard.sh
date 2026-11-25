@@ -34,12 +34,29 @@ console_home() {
   /usr/bin/dscl . -read "/Users/$CU" NFSHomeDirectory 2>/dev/null | /usr/bin/awk '{print $2}'
 }
 
+_pause_active() {
+  local f="$1" line until
+  [ -e "$f" ] || return 1
+  line=$(/usr/bin/head -1 "$f" 2>/dev/null)
+  case "$line" in
+    until=*)
+      until=${line#until=}
+      case "$until" in ''|*[!0-9]*) return 0 ;; esac
+      if [ "$(/bin/date +%s)" -ge "$until" ]; then
+        rm -f "$f" 2>/dev/null
+        log "pause expired -> re-armed"
+        return 1
+      fi ;;
+  esac
+  return 0
+}
+
 paused() {
   local h
-  [ -e "/etc/ip-please/pause" ] && return 0
-  [ -n "${IP_PLEASE_HOME:-}" ] && { [ -e "$IP_PLEASE_HOME/.ip-please-pause" ] && return 0; }
+  _pause_active "/etc/ip-please/pause" && return 0
+  [ -n "${IP_PLEASE_HOME:-}" ] && { _pause_active "$IP_PLEASE_HOME/.ip-please-pause" && return 0; }
   h=$(console_home) || return 1
-  [ -n "$h" ] && [ -e "$h/.ip-please-pause" ]
+  [ -n "$h" ] && _pause_active "$h/.ip-please-pause"
 }
 
 tun_up() {

@@ -73,6 +73,16 @@ IP_PLEASE_TEST_UP=1 "$HERE/lib/guard.sh"
 backdate
 IP_PLEASE_TEST_UP=0 IP_PLEASE_TEST_TUN=1 "$HERE/lib/guard.sh"; check "TUN 在、超宽限：阻断" 2
 
+echo "暂停过期"
+: > "$RULES"
+printf 'until=%s\n' $(( $(date +%s) - 10 )) > "$IP_PLEASE_HOME/.ip-please-pause"
+IP_PLEASE_TEST_UP=1 IP_PLEASE_TEST_TUN=1 "$HERE/lib/guard.sh"
+[ -e "$IP_PLEASE_HOME/.ip-please-pause" ] && { echo "  FAIL  过期标记未清除"; fail=$((fail+1)); } || echo "  PASS  过期标记已清除"
+printf 'until=%s\n' $(( $(date +%s) + 300 )) > "$IP_PLEASE_HOME/.ip-please-pause"
+IP_PLEASE_TEST_UP=0 IP_PLEASE_TEST_TUN=1 "$HERE/lib/guard.sh"; check "未过期暂停不阻断" 0
+[ -e "$IP_PLEASE_HOME/.ip-please-pause" ] && echo "  PASS  未过期标记保留" || { echo "  FAIL  未过期标记被删"; fail=$((fail+1)); }
+rm -f "$IP_PLEASE_HOME/.ip-please-pause"
+
 printf '%s\n' $(( $(date +%s) - 1000 )) > "$IP_PLEASE_RUN/ip-please-guard.blocked"
 backdate
 IP_PLEASE_TEST_UP=0 "$HERE/lib/guard.sh"; check "TTL 超时后放开" 0

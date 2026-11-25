@@ -37,6 +37,15 @@ cat > "$TMP/bin/sudo" <<'EOF'
 #!/bin/bash
 exec "$@"
 EOF
+cat > "$TMP/bin/pgrep" <<'EOF'
+#!/bin/bash
+[ "${TEST_BUSY:-0}" = "1" ] && exit 0
+exit 1
+EOF
+cat > "$TMP/bin/lsof" <<'EOF'
+#!/bin/bash
+exit 0
+EOF
 for c in dscacheutil killall osascript open route; do
 cat > "$TMP/bin/$c" <<EOF
 #!/bin/bash
@@ -55,7 +64,7 @@ run() { # run <TEST_UP> <TEST_TUN> <TEST_PROXY> <TEST_DNS> [--restart]
   : > "$LOG"
   rm -f "$HOME_DIR/.ip-please-pause"
   TEST_UP="$1" TEST_TUN="$2" TEST_PROXY="$3" TEST_DNS="$4" \
-  HOME="$HOME_DIR" \
+  HOME="$HOME_DIR" PATH="$TMP/bin:$PATH" \
   IP_PLEASE_NC="$TMP/bin/nc" IP_PLEASE_IFCONFIG="$TMP/bin/ifconfig" \
   IP_PLEASE_SCUTIL="$TMP/bin/scutil" IP_PLEASE_NETWORKSETUP="$TMP/bin/networksetup" \
   IP_PLEASE_SUDO="$TMP/bin/sudo" IP_PLEASE_DSCACHEUTIL="$TMP/bin/dscacheutil" \
@@ -84,6 +93,16 @@ echo "带 --restart"
 run 0 0 0 0 --restart
 grep -q 'quit app "FlClash"' "$LOG" && pass "尝试退出 FlClash" || nope "未退出 FlClash"
 grep -q 'open -a FlClash' "$LOG" && pass "重新打开 FlClash" || nope "未打开 FlClash"
+
+echo "Claude 活动时拒绝重启"
+: > "$LOG"; rm -f "$HOME_DIR/.ip-please-pause"
+TEST_BUSY=1 TEST_UP=0 TEST_TUN=0 HOME="$HOME_DIR" PATH="$TMP/bin:$PATH" \
+  IP_PLEASE_NC="$TMP/bin/nc" IP_PLEASE_IFCONFIG="$TMP/bin/ifconfig" \
+  IP_PLEASE_SCUTIL="$TMP/bin/scutil" IP_PLEASE_NETWORKSETUP="$TMP/bin/networksetup" \
+  IP_PLEASE_SUDO="$TMP/bin/sudo" IP_PLEASE_RECOVER_TRIES=1 \
+  "$HERE/bin/ip-please" --plain recover --restart >/dev/null 2>&1
+[ $? -ne 0 ] && pass "busy 时返回非 0" || nope "busy 时未拒绝"
+grep -q 'quit app "FlClash"' "$LOG" && nope "busy 时仍退出 FlClash" || pass "busy 时未动 FlClash"
 
 [ "$fail" -eq 0 ] && { echo "全部通过"; exit 0; }
 echo "$fail 项失败"; exit 1
