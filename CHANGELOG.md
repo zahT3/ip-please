@@ -135,6 +135,11 @@
 ### Fixed
 - `ipp activity` 误报：仅「5 分钟内有会话写入」不再判定为忙碌，只有 Claude 进程或活动代理连接才拦截；`--strict` 可恢复严格判定
 
+## [0.6.8] - 2026-11-26
+
+### Fixed
+- `ipp ip` 的「探针路径」提示改为读取 FlClash 运行时配置（含脚本规则），避免用 profile 判断造成误报
+
 ## [Unreleased]
 
 ### Added

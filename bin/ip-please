@@ -2,7 +2,7 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.6.7"
+VERSION="0.6.8"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -180,7 +180,7 @@ cmd_ip() {
   esac
   [ "${CC:-}" = "$EXPECT_COUNTRY" ] && ok "出口 geo" "$CC" || { bad "出口 geo" "${CC:-未知}（预期 ${EXPECT_COUNTRY}）"; fail=$((fail + 1)); }
   local _p _g
-  if _p=$(resolve_profile 2>/dev/null); then
+  if _p=$(resolve_rules_source 2>/dev/null); then
     _g=$(IP_PLEASE_REDACT="${REDACT:-0}" python3 "$HELPER" rules "$_p" ipinfo.io 2>/dev/null | awk -F'\t' '$1=="ipinfo.io"{print $2}')
     if [ -n "${_g:-}" ] && [ "$_g" != "$AI_GROUP" ]; then
       info "探针路径" "ipinfo.io 走 ${_g}，不是 ${AI_GROUP}（ipp ip 测的是默认路由）"
