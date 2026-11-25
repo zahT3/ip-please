@@ -86,6 +86,15 @@
 - 订阅文件发现逻辑：优先读取 FlClash 数据库里的当前 profile id，避免按 mtime 选中未使用的旧文件（导致 `--fix` 改错文件）
 - 手册新增 QA：FlClash 升级后自定义脚本失效的排查与恢复
 
+## [0.6.2] - 2026-11-25
+
+### Changed
+- `ipp egress` 改为审计 FlClash 运行时配置 `config.yaml`（含脚本注入规则），结果与实际生效路由一致；找不到运行时配置时回退到 profile
+- `--fix` 在脚本已启用时会提示「自定义规则建议写进脚本」，避免被订阅更新覆盖
+
+### Fixed
+- 运行时配置包含脚本规则时，egress/探针路径误报（之前只看 profile 文件）
+
 ## [Unreleased]
 
 ### Added

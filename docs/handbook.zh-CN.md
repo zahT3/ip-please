@@ -284,6 +284,7 @@ ls "$HOME/Library/Application Support/com.follow.clash/scripts/"
 修复：FlClash → 配置（Profiles）→ 选中订阅 → **脚本（Scripts）** → 选回 `Tailscale Bypass` → 保存并重载，再用上面第 2 步确认。
 
 > `ip-please` 0.6.1 起会从 FlClash 数据库读取**当前活动 profile**，不再按文件修改时间猜，避免 `--fix` 改到没在用的那份。
+> 0.6.2 起 `ipp egress` 优先审计 **FlClash 运行时配置**（`config.yaml`，已包含脚本注入的规则），所以看到的结果就是实际生效的路由；改完脚本后需要重载/重启 FlClash，运行时配置才会重新生成。
 
 ### Q20：报错但我不确定该发什么给人看
 

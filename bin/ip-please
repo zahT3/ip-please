@@ -2,7 +2,7 @@
 # ipp —— 出口身份审计与防泄漏熔断 CLI（macOS；全名 ip-please）
 set -uo pipefail
 
-VERSION="0.6.1"
+VERSION="0.6.2"
 _SRC="${BASH_SOURCE[0]}"
 while [ -L "$_SRC" ]; do _SRC=$(/usr/bin/readlink "$_SRC"); done
 HERE="$(cd "$(dirname "$_SRC")/.." && pwd)"
@@ -341,6 +341,12 @@ resolve_profile() {
   printf '%s\n' "$p"
 }
 
+resolve_rules_source() {
+  local rt="$HOME/Library/Application Support/com.follow.clash/config.yaml"
+  if [ -f "$rt" ]; then printf '%s\n' "$rt"; return 0; fi
+  resolve_profile
+}
+
 _show_groups() {
   local out=$1
   printf '%s\n' "$out" | awk -F'\t' -v style="$STYLE" '
@@ -349,8 +355,11 @@ _show_groups() {
 }
 
 cmd_egress() {
-  local fix=0 profile out rc groups
+  local fix=0 profile source out rc groups
   [ "${1:-}" = "--fix" ] && fix=1
+  source=$(resolve_rules_source) || {
+    bad "配置" "找不到 FlClash 运行时配置或 profile"; return 1
+  }
   profile=$(resolve_profile) || {
     bad "订阅配置" "找不到 Clash 系 YAML profile"
     printf '  指定路径: ipp egress --profile <path>\n'
@@ -367,11 +376,28 @@ cmd_egress() {
       return 1
     fi
     ok "规则" "插入 ${out:-0} 条，重载 profile 后生效"
+    local sid
+    sid=$(python3 - "$HOME/Library/Application Support/com.follow.clash/database.sqlite" <<'PYEOF' 2>/dev/null
+import sqlite3, sys
+try:
+    c = sqlite3.connect("file:%s?mode=ro" % sys.argv[1], uri=True)
+    rows = [r[0] for r in c.execute("select script_id from profiles")]
+    print(rows[0] if rows and rows[0] else "")
+except Exception:
+    pass
+PYEOF
+)
+    if [ -n "${sid:-}" ]; then
+      wrn "脚本已启用" "自定义规则建议写进脚本（订阅更新会覆盖 profile）"
+    fi
   fi
 
   say "出口收敛"
-  kv "配置" "$profile"
-  out=$(IP_PLEASE_REDACT="${REDACT:-0}" python3 "$HELPER" rules "$profile" $AI_DOMAINS 2>&1)
+  case "$source" in
+    */config.yaml) kv "配置" "${source}（运行时，含脚本）" ;;
+    *)             kv "配置" "$source" ;;
+  esac
+  out=$(IP_PLEASE_REDACT="${REDACT:-0}" python3 "$HELPER" rules "$source" $AI_DOMAINS 2>&1)
   rc=$?
   if [ "$rc" -eq 2 ]; then bad "解析" "配置文件缺失 rules: 字段，无法审计"; return 2; fi
   _show_groups "$out"
@@ -381,7 +407,7 @@ cmd_egress() {
     bad "结论" "命中 $groups 个策略组，egress 未收敛"; printf '  修复: ip-please egress --fix\n'
   fi
   local _d _pg _probe_bad=0 probe_out
-  probe_out=$(IP_PLEASE_REDACT="${REDACT:-0}" python3 "$HELPER" rules "$profile" $PROBE_DOMAINS 2>/dev/null)
+  probe_out=$(IP_PLEASE_REDACT="${REDACT:-0}" python3 "$HELPER" rules "$source" $PROBE_DOMAINS 2>/dev/null)
   for _d in $PROBE_DOMAINS; do
     _pg=$(printf '%s\n' "$probe_out" | awk -F'\t' -v d="$_d" '$1==d{print $2}')
     if [ -n "${_pg:-}" ] && [ "$_pg" != "$AI_GROUP" ]; then
